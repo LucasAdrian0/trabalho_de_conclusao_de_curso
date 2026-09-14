@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+#arquivo local com chaves reais do supabase, não deve ser versionado
+dotenv.env
