@@ -1,6 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tcc_frete_urbano/domain/enums/status_disponibilidade.dart';
 import '../models/prestador_model.dart';
+import '../models/regiao_atendimento_model.dart';
+import '../models/ajudantes_prestador_model.dart';
+import '../models/veiculo_model.dart';
 
 abstract class PrestadorRemoteDataSource {
   Future<PrestadorModel?> buscarPorUsuarioId(String usuarioId);
@@ -26,7 +29,7 @@ class PrestadorRemoteDataSourceImpl implements PrestadorRemoteDataSource {
     final response = await supabase
         .from('prestadores')
         .select(
-          '*, usuarios(*), regioes_atendimento(*), veiculos(*), ajudantes(*)',
+          '*, usuarios(id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at), regioes_atendimento(*), veiculos(*), ajudantes:ajudantes_prestador(*)',
         )
         .eq('usuario_id', usuarioId)
         .maybeSingle();
@@ -43,7 +46,7 @@ class PrestadorRemoteDataSourceImpl implements PrestadorRemoteDataSource {
     final response = await supabase
         .from('prestadores')
         .select(
-          '*, usuarios(*), regioes_atendimento(*), veiculos(*), ajudantes(*)',
+          '*, usuarios(id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at), regioes_atendimento!inner(*), veiculos(*), ajudantes:ajudantes_prestador(*)',
         )
         // Filtra pela string 'disponivel' correspondente ao Enum
         .eq('status_disponibilidade', StatusDisponibilidade.disponivel.name)
@@ -56,15 +59,12 @@ class PrestadorRemoteDataSourceImpl implements PrestadorRemoteDataSource {
 
   @override
   Future<void> salvar(PrestadorModel prestador) async {
-    await supabase.from('prestadores').insert(prestador.toJson());
+    await _persistir(prestador, criar: true);
   }
 
   @override
   Future<void> atualizar(PrestadorModel prestador) async {
-    await supabase
-        .from('prestadores')
-        .update(prestador.toJson())
-        .eq('usuario_id', prestador.usuario.id);
+    await _persistir(prestador, criar: false);
   }
 
   @override
@@ -77,5 +77,29 @@ class PrestadorRemoteDataSourceImpl implements PrestadorRemoteDataSource {
         // Salva a propriedade .name (String) no Supabase
         .update({'status_disponibilidade': disponivel.name})
         .eq('usuario_id', usuarioId);
+  }
+
+  Future<void> _persistir(
+    PrestadorModel prestador, {
+    required bool criar,
+  }) async {
+    await supabase.rpc(
+      'salvar_prestador_com_relacoes',
+      params: {
+        'p_prestador': prestador.toJson(),
+        'p_criar': criar,
+        'p_regioes': prestador.regioesAtendimento
+            .map((r) => RegiaoAtendimentoModel.fromEntity(r).toJson())
+            .toList(),
+        'p_veiculos': prestador.veiculos
+            .map((v) => VeiculoModel.fromEntity(v).toJson())
+            .toList(),
+        'p_ajudantes': prestador.servicoAjudantes == null
+            ? null
+            : AjudantesPrestadorModel.fromEntity(
+                prestador.servicoAjudantes!,
+              ).toJson(),
+      },
+    );
   }
 }

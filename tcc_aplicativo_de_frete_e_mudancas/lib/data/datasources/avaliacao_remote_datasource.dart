@@ -25,7 +25,9 @@ class AvaliacaoRemoteDataSourceImpl implements AvaliacaoRemoteDataSource {
         .eq('prestador_id', prestadorId);
 
     final lista = response as List;
-    return lista.map((e) => AvaliacaoModel.fromJson(e as Map<String, dynamic>)).toList();
+    return lista
+        .map((e) => AvaliacaoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

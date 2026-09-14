@@ -1,3 +1,5 @@
+import '../errors/falha.dart';
+
 class AvaliacaoEntity {
   final String id;
   final String servicoId;
@@ -20,4 +22,15 @@ class AvaliacaoEntity {
   bool eNotaMaxima() => nota >= 5.0;
 
   bool eNotaBaixa() => nota <= 1.0;
+  void validar() {
+    if (!nota.isFinite ||
+        nota < 1 ||
+        nota > 5 ||
+        nota != nota.roundToDouble()) {
+      throw Falha(
+        TipoFalha.validacao,
+        'A nota deve ser um inteiro entre 1 e 5.',
+      );
+    }
+  }
 }

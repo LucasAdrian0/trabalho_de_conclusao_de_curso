@@ -22,7 +22,9 @@ class EnderecoRemoteDataSourceImpl implements EnderecoRemoteDataSource {
         .eq('usuario_id', usuarioId);
 
     final lista = response as List;
-    return lista.map((e) => EnderecoModel.fromJson(e as Map<String, dynamic>)).toList();
+    return lista
+        .map((e) => EnderecoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

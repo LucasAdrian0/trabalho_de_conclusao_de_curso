@@ -17,7 +17,9 @@ class ClienteRemoteDataSourceImpl implements ClienteRemoteDataSource {
   Future<ClienteModel?> buscarPorUsuarioId(String usuarioId) async {
     final response = await supabase
         .from('clientes')
-        .select('*, usuarios(*)')
+        .select(
+          '*, usuarios(id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at)',
+        )
         .eq('usuario_id', usuarioId)
         .maybeSingle();
 
@@ -29,7 +31,9 @@ class ClienteRemoteDataSourceImpl implements ClienteRemoteDataSource {
   Future<ClienteModel?> buscarPorCpf(String cpf) async {
     final response = await supabase
         .from('clientes')
-        .select('*, usuarios(*)')
+        .select(
+          '*, usuarios(id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at)',
+        )
         .eq('cpf', cpf)
         .maybeSingle();
 
@@ -39,7 +43,7 @@ class ClienteRemoteDataSourceImpl implements ClienteRemoteDataSource {
 
   @override
   Future<void> salvar(ClienteModel cliente) async {
-    await supabase.from('clientes').insert(cliente.toJson());
+    await supabase.from('clientes').upsert(cliente.toJson());
   }
 
   @override

@@ -1,3 +1,4 @@
+import '../errors/falha.dart';
 import 'package:tcc_frete_urbano/domain/entities/historico_status_service.dart';
 import 'package:tcc_frete_urbano/domain/enums/status_servico.dart';
 
@@ -42,4 +43,39 @@ class ServicoEntity {
   bool podeCancelar() =>
       status == StatusServico.agendado ||
       status == StatusServico.prestadorACaminho;
+
+  void validarTransicao(StatusServico novoStatus, String usuarioId) {
+    if (usuarioId != clienteId && usuarioId != prestadorId) {
+      throw const Falha(
+        TipoFalha.acessoNegado,
+        'Este serviço não pertence à sua conta.',
+      );
+    }
+    if (novoStatus == status) return;
+    final peloPrestador =
+        usuarioId == prestadorId &&
+        ((status == StatusServico.agendado &&
+                {
+                  StatusServico.prestadorACaminho,
+                  StatusServico.emAndamento,
+                  StatusServico.canceladoPeloPrestador,
+                }.contains(novoStatus)) ||
+            (status == StatusServico.prestadorACaminho &&
+                {
+                  StatusServico.emAndamento,
+                  StatusServico.canceladoPeloPrestador,
+                }.contains(novoStatus)) ||
+            (status == StatusServico.emAndamento &&
+                novoStatus == StatusServico.concluido));
+    final peloCliente =
+        usuarioId == clienteId &&
+        podeCancelar() &&
+        novoStatus == StatusServico.canceladoPeloCliente;
+    if (!peloPrestador && !peloCliente) {
+      throw const Falha(
+        TipoFalha.conflito,
+        'Transição de serviço não permitida.',
+      );
+    }
+  }
 }

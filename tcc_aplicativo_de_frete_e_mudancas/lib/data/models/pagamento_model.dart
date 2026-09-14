@@ -1,8 +1,6 @@
-import 'package:tcc_frete_urbano/domain/enums/metodo_pagamento.dart';
-import 'package:tcc_frete_urbano/domain/enums/status_pagamento.dart';
+import '../mappers/database_enums.dart';
 
 import '../../domain/entities/pagamento_entity.dart';
-
 
 class PagamentoModel extends PagamentoEntity {
   const PagamentoModel({
@@ -21,17 +19,16 @@ class PagamentoModel extends PagamentoEntity {
     return PagamentoModel(
       id: json['id'] as String,
       servicoId: json['servico_id'] as String,
-      clienteId: json['cliente_id'] as String,
+      clienteId:
+          (json['servicos'] as Map<String, dynamic>)['cliente_id'] as String,
       valor: (json['valor'] as num).toDouble(),
       // Converte String do Supabase para Enum
-      metodoPagamento: MetodoPagamento.values.byName(
-        json['metodo_pagamento'] as String,
+      metodoPagamento: MetodoPagamentoMapper.fromDatabase(
+        json['metodo'] as String,
       ),
       // Converte String do Supabase para Enum
-      status: StatusPagamento.values.byName(
-        json['status'] as String,
-      ),
-      transacaoId: json['transacao_id'] as String?,
+      status: StatusPagamentoMapper.fromDatabase(json['status'] as String),
+      transacaoId: json['gateway_transacao_id'] as String?,
       aprovadoEm: json['aprovado_em'] != null
           ? DateTime.parse(json['aprovado_em'] as String)
           : null,
@@ -43,19 +40,28 @@ class PagamentoModel extends PagamentoEntity {
     return {
       'id': id,
       'servico_id': servicoId,
-      'cliente_id': clienteId,
       'valor': valor,
       // Converte o Enum para String utilizando .name
-      'metodo_pagamento': metodoPagamento.name,
+      'metodo': metodoPagamento.databaseValue,
       // Converte o Enum para String utilizando .name
-      'status': status.name,
-      if (transacaoId != null) 'transacao_id': transacaoId,
+      'status': status.databaseValue,
+      if (transacaoId != null) 'gateway_transacao_id': transacaoId,
       if (aprovadoEm != null) 'aprovado_em': aprovadoEm!.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
   }
 
-  PagamentoEntity toEntity() => this;
+  PagamentoEntity toEntity() => PagamentoEntity(
+    id: id,
+    servicoId: servicoId,
+    clienteId: clienteId,
+    valor: valor,
+    metodoPagamento: metodoPagamento,
+    status: status,
+    transacaoId: transacaoId,
+    aprovadoEm: aprovadoEm,
+    createdAt: createdAt,
+  );
 
   factory PagamentoModel.fromEntity(PagamentoEntity entity) {
     return PagamentoModel(

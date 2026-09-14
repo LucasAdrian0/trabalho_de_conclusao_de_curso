@@ -25,14 +25,14 @@ class UsuarioModel extends UsuarioEntity {
       nome: json['nome'] as String,
       email: json['email'] as String,
       telefone: json['telefone'] as String?,
-      fotoUrl: json['fotoUrl'] as String?,
-      emailVerificado: json['emailVerificado'] as bool? ?? false,
+      fotoUrl: json['foto_url'] as String?,
+      emailVerificado: json['email_verificado'] as bool? ?? false,
       ativo: json['ativo'] as bool? ?? true,
-      ultimoLoginEm: json['ultimoLoginEm'] != null
-          ? DateTime.parse(json['ultimoLoginEm'])
+      ultimoLoginEm: json['ultimo_login_em'] != null
+          ? DateTime.parse(json['ultimo_login_em'])
           : null,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 
@@ -43,12 +43,39 @@ class UsuarioModel extends UsuarioEntity {
       'nome': nome,
       'email': email,
       'telefone': telefone,
-      'fotoUrl': fotoUrl,
-      'emailVerificado': emailVerificado,
+      'foto_url': fotoUrl,
+      'email_verificado': emailVerificado,
       'ativo': ativo,
-      'ultimoLoginEm': ultimoLoginEm?.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'ultimo_login_em': ultimoLoginEm?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
+
+  factory UsuarioModel.fromEntity(UsuarioEntity entity) => UsuarioModel(
+    id: entity.id,
+    tipo: entity.tipo,
+    nome: entity.nome,
+    email: entity.email,
+    telefone: entity.telefone,
+    fotoUrl: entity.fotoUrl,
+    emailVerificado: entity.emailVerificado,
+    ativo: entity.ativo,
+    ultimoLoginEm: entity.ultimoLoginEm,
+    createdAt: entity.createdAt,
+    updatedAt: entity.updatedAt,
+  );
+  UsuarioEntity toEntity() => UsuarioEntity(
+    id: id,
+    tipo: tipo,
+    nome: nome,
+    email: email,
+    telefone: telefone,
+    fotoUrl: fotoUrl,
+    emailVerificado: emailVerificado,
+    ativo: ativo,
+    ultimoLoginEm: ultimoLoginEm,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
 }

@@ -1,4 +1,1 @@
-enum TipoUsuario {
-  cliente,
-  prestador,
-}
+enum TipoUsuario { cliente, prestador }

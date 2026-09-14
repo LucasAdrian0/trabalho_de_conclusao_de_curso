@@ -1,3 +1,4 @@
+import '../errors/falha.dart';
 import 'package:tcc_frete_urbano/domain/entities/endereco_entity.dart';
 import 'package:tcc_frete_urbano/domain/entities/item_solicitado.dart';
 import 'package:tcc_frete_urbano/domain/enums/status_solicitacao.dart';
@@ -39,9 +40,12 @@ class SolicitacaoEntity {
   });
 
   // Regras de negócio tipadas com Enum
-  bool podeSerCancelada() => status == StatusSolicitacao.criado || status == StatusSolicitacao.aguardandoPrestador;
+  bool podeSerCancelada() =>
+      status == StatusSolicitacao.criado ||
+      status == StatusSolicitacao.aguardandoPrestador;
 
-  bool podeReceberOrcamento() => status == StatusSolicitacao.aguardandoPrestador;
+  bool podeReceberOrcamento() =>
+      status == StatusSolicitacao.aguardandoPrestador;
 
   SolicitacaoEntity expirar() {
     return _copyWith(status: StatusSolicitacao.expirada);
@@ -77,6 +81,37 @@ class SolicitacaoEntity {
       status: status ?? this.status,
       observacoes: observacoes,
       itens: itens ?? this.itens,
+    );
+  }
+
+  void validar() {
+    for (final item in itens) {
+      item.validar();
+      if (item.solicitacaoId != id) {
+        throw const Falha(TipoFalha.validacao, "Item de outra solicitação.");
+      }
+    }
+
+    if (quantidadeAjudantes < 0 ||
+        duracaoEstimadaMin < 0 ||
+        !volumeEstimadoM3.isFinite ||
+        volumeEstimadoM3 < 0 ||
+        !distanciaKm.isFinite ||
+        distanciaKm < 0) {
+      throw Falha(TipoFalha.validacao, 'Valores da solicitação inválidos.');
+    }
+  }
+
+  void validarTransicao(StatusSolicitacao novoStatus) {
+    if (status == novoStatus) return;
+    if (status == StatusSolicitacao.criado &&
+        novoStatus == StatusSolicitacao.aguardandoPrestador) {
+      return;
+    }
+    if (podeSerCancelada() && novoStatus == StatusSolicitacao.cancelada) return;
+    throw const Falha(
+      TipoFalha.conflito,
+      'Transição de solicitação não permitida.',
     );
   }
 }

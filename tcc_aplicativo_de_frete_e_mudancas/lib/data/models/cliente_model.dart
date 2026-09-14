@@ -21,9 +21,10 @@ class ClienteModel extends ClienteEntity {
   }
 
   /// Converte o Model para a Entidade pura do Domain.
-  ClienteEntity toEntity() {
-    return ClienteEntity(usuario: usuario, cpf: cpf);
-  }
+  ClienteEntity toEntity() => ClienteEntity(
+    usuario: UsuarioModel.fromEntity(usuario).toEntity(),
+    cpf: cpf,
+  );
 
   /// Cria um Model a partir de uma Entidade do Domain.
   factory ClienteModel.fromEntity(ClienteEntity cliente) {

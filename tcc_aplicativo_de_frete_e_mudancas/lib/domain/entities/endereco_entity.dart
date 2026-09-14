@@ -2,7 +2,7 @@ import '../enums/tipo_endereco.dart';
 
 class EnderecoEntity {
   final String id;
-  final String usuarioId;
+  final String? usuarioId;
   final TipoEndereco tipo;
   final String cep;
   final String logradouro;
@@ -42,7 +42,9 @@ class EnderecoEntity {
   bool eEnderecoDestino() => tipo == TipoEndereco.destino;
 
   String formatarEnderecoCompleto() {
-    final comp = (complemento != null && complemento!.isNotEmpty) ? ', $complemento' : '';
+    final comp = (complemento != null && complemento!.isNotEmpty)
+        ? ', $complemento'
+        : '';
     return '$logradouro, $numero$comp - $bairro, $cidade - $estado, $cep';
   }
 }

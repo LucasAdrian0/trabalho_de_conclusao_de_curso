@@ -1,3 +1,5 @@
+import '../errors/falha.dart';
+
 class ItemSolicitacao {
   final String id;
   final String solicitacaoId;
@@ -27,5 +29,11 @@ class ItemSolicitacao {
       fragil: true,
       observacoes: observacoes,
     );
+  }
+
+  void validar() {
+    if (quantidade <= 0) {
+      throw Falha(TipoFalha.validacao, 'A quantidade deve ser positiva.');
+    }
   }
 }

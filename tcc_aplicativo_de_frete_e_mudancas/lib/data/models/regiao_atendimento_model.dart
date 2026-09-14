@@ -15,7 +15,7 @@ class RegiaoAtendimentoModel extends RegiaoAtendimento {
       prestadorId: json['prestador_id'] as String,
       cidade: json['cidade'] as String,
       estado: json['estado'] as String,
-      raioKm: (json['raio_km'] as num).toDouble(),
+      raioKm: (json['raio_km'] as num?)?.toDouble() ?? 0,
     );
   }
 
@@ -29,7 +29,13 @@ class RegiaoAtendimentoModel extends RegiaoAtendimento {
     };
   }
 
-  RegiaoAtendimento toEntity() => this;
+  RegiaoAtendimento toEntity() => RegiaoAtendimento(
+    id: id,
+    prestadorId: prestadorId,
+    cidade: cidade,
+    estado: estado,
+    raioKm: raioKm,
+  );
 
   factory RegiaoAtendimentoModel.fromEntity(RegiaoAtendimento entity) {
     return RegiaoAtendimentoModel(

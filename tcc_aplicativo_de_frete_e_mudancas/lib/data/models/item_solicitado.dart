@@ -1,6 +1,5 @@
 import 'package:tcc_frete_urbano/domain/entities/item_solicitado.dart';
 
-
 class ItemSolicitacaoModel extends ItemSolicitacao {
   const ItemSolicitacaoModel({
     required super.id,
@@ -17,7 +16,7 @@ class ItemSolicitacaoModel extends ItemSolicitacao {
       id: json['id'] as String,
       solicitacaoId: json['solicitacao_id'] as String,
       nome: json['nome'] as String,
-      categoria: json['categoria'] as String,
+      categoria: json['categoria'] as String? ?? '',
       quantidade: json['quantidade'] as int,
       fragil: json['fragil'] as bool? ?? false,
       observacoes: json['observacoes'] as String?,
@@ -47,4 +46,13 @@ class ItemSolicitacaoModel extends ItemSolicitacao {
       observacoes: entity.observacoes,
     );
   }
+  ItemSolicitacao toEntity() => ItemSolicitacao(
+    id: id,
+    solicitacaoId: solicitacaoId,
+    nome: nome,
+    categoria: categoria,
+    quantidade: quantidade,
+    fragil: fragil,
+    observacoes: observacoes,
+  );
 }

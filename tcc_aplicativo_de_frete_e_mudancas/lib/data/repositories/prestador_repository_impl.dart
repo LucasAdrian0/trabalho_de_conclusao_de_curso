@@ -1,3 +1,4 @@
+import '../errors/executar_repositorio.dart';
 import '../../domain/entities/prestador_entity.dart';
 import '../../domain/enums/status_disponibilidade.dart';
 import '../../domain/repositories/prestador_repository.dart';
@@ -10,31 +11,43 @@ class PrestadorRepositoryImpl implements PrestadorRepository {
   PrestadorRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<PrestadorEntity?> buscarPorUsuarioId(String usuarioId) async {
-    final model = await remoteDataSource.buscarPorUsuarioId(usuarioId);
-    return model?.toEntity();
-  }
+  Future<PrestadorEntity?> buscarPorUsuarioId(String usuarioId) =>
+      executarRepositorio(() async {
+        final model = await remoteDataSource.buscarPorUsuarioId(usuarioId);
+        return model?.toEntity();
+      });
 
   @override
-  Future<List<PrestadorEntity>> buscarDisponiveisPorRegiao(String cidade, String estado) async {
-    final models = await remoteDataSource.buscarDisponiveisPorRegiao(cidade, estado);
+  Future<List<PrestadorEntity>> buscarDisponiveisPorRegiao(
+    String cidade,
+    String estado,
+  ) => executarRepositorio(() async {
+    final models = await remoteDataSource.buscarDisponiveisPorRegiao(
+      cidade,
+      estado,
+    );
     return models.map((model) => model.toEntity()).toList();
-  }
+  });
 
   @override
-  Future<void> salvar(PrestadorEntity prestador) async {
-    final model = PrestadorModel.fromEntity(prestador);
-    await remoteDataSource.salvar(model);
-  }
+  Future<void> salvar(PrestadorEntity prestador) =>
+      executarRepositorio(() async {
+        final model = PrestadorModel.fromEntity(prestador);
+        await remoteDataSource.salvar(model);
+      });
 
   @override
-  Future<void> atualizar(PrestadorEntity prestador) async {
-    final model = PrestadorModel.fromEntity(prestador);
-    await remoteDataSource.atualizar(model);
-  }
+  Future<void> atualizar(PrestadorEntity prestador) =>
+      executarRepositorio(() async {
+        final model = PrestadorModel.fromEntity(prestador);
+        await remoteDataSource.atualizar(model);
+      });
 
   @override
-  Future<void> alterarDisponibilidade(String usuarioId, StatusDisponibilidade disponivel) async {
+  Future<void> alterarDisponibilidade(
+    String usuarioId,
+    StatusDisponibilidade disponivel,
+  ) => executarRepositorio(() async {
     await remoteDataSource.alterarDisponibilidade(usuarioId, disponivel);
-  }
+  });
 }

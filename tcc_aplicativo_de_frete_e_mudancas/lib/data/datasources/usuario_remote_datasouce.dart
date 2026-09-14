@@ -18,7 +18,9 @@ class UsuarioRemoteDataSourceImpl implements UsuarioRemoteDataSource {
   Future<UsuarioModel?> buscarPorId(String id) async {
     final response = await supabase
         .from('usuarios')
-        .select()
+        .select(
+          'id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at',
+        )
         .eq('id', id)
         .maybeSingle();
 
@@ -30,7 +32,9 @@ class UsuarioRemoteDataSourceImpl implements UsuarioRemoteDataSource {
   Future<UsuarioModel?> buscarPorEmail(String email) async {
     final response = await supabase
         .from('usuarios')
-        .select()
+        .select(
+          'id,tipo,nome,email,telefone,foto_url,email_verificado,ativo,ultimo_login_em,created_at,updated_at',
+        )
         .eq('email', email)
         .maybeSingle();
 
@@ -40,15 +44,22 @@ class UsuarioRemoteDataSourceImpl implements UsuarioRemoteDataSource {
 
   @override
   Future<void> salvar(UsuarioModel usuario) async {
-    await supabase.from('usuarios').insert(usuario.toJson());
+    // O perfil é criado pelo trigger do Supabase Auth.
+    await atualizar(usuario);
   }
 
   @override
   Future<void> atualizar(UsuarioModel usuario) async {
     await supabase
         .from('usuarios')
-        .update(usuario.toJson())
-        .eq('id', usuario.id);
+        .update({
+          'nome': usuario.nome,
+          'telefone': usuario.telefone,
+          'foto_url': usuario.fotoUrl,
+        })
+        .eq('id', usuario.id)
+        .select('id')
+        .single();
   }
 
   @override

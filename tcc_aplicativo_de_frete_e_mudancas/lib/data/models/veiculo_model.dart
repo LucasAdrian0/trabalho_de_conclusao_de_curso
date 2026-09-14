@@ -1,5 +1,5 @@
+import '../mappers/database_enums.dart';
 import '../../domain/entities/veiculo.dart';
-import '../../domain/enums/status_veiculo.dart';
 import 'dimensoes_veiculo_model.dart';
 
 class VeiculoModel extends Veiculo {
@@ -21,16 +21,18 @@ class VeiculoModel extends Veiculo {
     return VeiculoModel(
       id: json['id'] as String,
       prestadorId: json['prestador_id'] as String,
-      tipo: json['tipo'] as String,
-      marca: json['marca'] as String,
-      modelo: json['modelo'] as String,
-      ano: json['ano'] as int,
-      capacidadeKg: (json['capacidade_kg'] as num).toDouble(),
-      dimensoes: DimensoesVeiculoModel.fromJson(
-        json['dimensoes'] as Map<String, dynamic>,
-      ),
+      tipo: TipoVeiculoMapper.fromDatabase(json['tipo'] as String),
+      marca: json['marca'] as String? ?? '',
+      modelo: json['modelo'] as String? ?? '',
+      ano: json['ano'] as int? ?? 0,
+      capacidadeKg: (json['capacidade_kg'] as num?)?.toDouble() ?? 0,
+      dimensoes: DimensoesVeiculoModel.fromJson({
+        'largura': json['largura_m'] ?? 0,
+        'altura': json['altura_m'] ?? 0,
+        'comprimento': json['comprimento_m'] ?? 0,
+      }),
       valorKm: (json['valor_km'] as num).toDouble(),
-      status: StatusVeiculo.fromString(json['status'] as String?),
+      status: StatusVeiculoMapper.fromDatabase(json['status'] as String?),
       fotoUrl: json['foto_url'] as String?,
     );
   }
@@ -39,19 +41,33 @@ class VeiculoModel extends Veiculo {
     return {
       'id': id,
       'prestador_id': prestadorId,
-      'tipo': tipo,
+      'tipo': tipo.databaseValue,
       'marca': marca,
       'modelo': modelo,
       'ano': ano,
       'capacidade_kg': capacidadeKg,
-      'dimensoes': DimensoesVeiculoModel.fromEntity(dimensoes).toJson(),
+      'largura_m': dimensoes.largura,
+      'altura_m': dimensoes.altura,
+      'comprimento_m': dimensoes.comprimento,
       'valor_km': valorKm,
-      'status': status.name,
+      'status': status.databaseValue,
       'foto_url': fotoUrl,
     };
   }
 
-  Veiculo toEntity() => this;
+  Veiculo toEntity() => Veiculo(
+    id: id,
+    prestadorId: prestadorId,
+    tipo: tipo,
+    marca: marca,
+    modelo: modelo,
+    ano: ano,
+    capacidadeKg: capacidadeKg,
+    dimensoes: DimensoesVeiculoModel.fromEntity(dimensoes).toEntity(),
+    valorKm: valorKm,
+    status: status,
+    fotoUrl: fotoUrl,
+  );
 
   factory VeiculoModel.fromEntity(Veiculo entity) {
     return VeiculoModel(

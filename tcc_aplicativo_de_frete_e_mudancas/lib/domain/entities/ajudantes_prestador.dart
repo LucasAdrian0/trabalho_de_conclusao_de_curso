@@ -1,3 +1,5 @@
+import '../errors/falha.dart';
+
 class AjudantesPrestador {
   final String prestadorId;
   final bool ofereceAjudantes;
@@ -12,11 +14,26 @@ class AjudantesPrestador {
   });
 
   bool podeAtenderQuantidade(int quantidadeSolicitada) {
-    return ofereceAjudantes && quantidadeSolicitada <= quantidadeDisponivel;
+    return quantidadeSolicitada > 0 &&
+        ofereceAjudantes &&
+        quantidadeSolicitada <= quantidadeDisponivel;
   }
 
   double calcularCustoAjudantes(int quantidade) {
-    if (!podeAtenderQuantidade(quantidade)) return 0.0;
+    if (!podeAtenderQuantidade(quantidade)) {
+      throw Falha(TipoFalha.validacao, 'Quantidade de ajudantes indisponível.');
+    }
     return quantidade * valorPorAjudante;
+  }
+
+  void validar() {
+    if (quantidadeDisponivel < 0 ||
+        !valorPorAjudante.isFinite ||
+        valorPorAjudante < 0) {
+      throw Falha(
+        TipoFalha.validacao,
+        'Quantidade e valor de ajudantes inválidos.',
+      );
+    }
   }
 }

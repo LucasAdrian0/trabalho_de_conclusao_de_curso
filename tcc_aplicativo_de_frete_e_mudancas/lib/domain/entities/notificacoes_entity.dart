@@ -1,9 +1,12 @@
+import '../enums/tipo_notificacao.dart';
+
 class NotificacoesEntity {
   final String id;
   final String usuarioId;
   final String titulo;
   final String mensagem;
-  final String tipo; // Ex: 'solicitacao', 'orcamento', 'servico', 'pagamento'
+  final TipoNotificacao
+  tipo; // Ex: 'solicitacao', 'orcamento', 'servico', 'pagamento'
   final bool lida;
   final DateTime? lidaEm;
   final DateTime createdAt;

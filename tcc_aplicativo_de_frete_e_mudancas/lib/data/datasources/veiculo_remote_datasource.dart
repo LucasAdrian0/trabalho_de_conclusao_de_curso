@@ -1,3 +1,4 @@
+import '../mappers/database_enums.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/enums/status_veiculo.dart';
 import '../models/veiculo_model.dart';
@@ -35,7 +36,9 @@ class VeiculoRemoteDataSourceImpl implements VeiculoRemoteDataSource {
         .eq('prestador_id', prestadorId);
 
     final lista = response as List;
-    return lista.map((e) => VeiculoModel.fromJson(e as Map<String, dynamic>)).toList();
+    return lista
+        .map((e) => VeiculoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
@@ -47,7 +50,7 @@ class VeiculoRemoteDataSourceImpl implements VeiculoRemoteDataSource {
   Future<void> atualizarStatus(String veiculoId, StatusVeiculo status) async {
     await supabase
         .from('veiculos')
-        .update({'status': status.name})
+        .update({'status': status.databaseValue})
         .eq('id', veiculoId);
   }
 

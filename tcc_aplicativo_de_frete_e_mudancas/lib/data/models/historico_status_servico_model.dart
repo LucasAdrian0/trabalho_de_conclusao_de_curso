@@ -15,9 +15,9 @@ class HistoricoStatusServicoModel extends HistoricoStatusServico {
     return HistoricoStatusServicoModel(
       id: json['id'] as String,
       servicoId: json['servico_id'] as String,
-      statusAnterior: json['status_anterior'] as String,
+      statusAnterior: json['status_anterior'] as String?,
       statusNovo: json['status_novo'] as String,
-      alteradoPorUsuarioId: json['alterado_por_usuario_id'] as String,
+      alteradoPorUsuarioId: json['alterado_por'] as String?,
       observacao: json['observacao'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -29,7 +29,7 @@ class HistoricoStatusServicoModel extends HistoricoStatusServico {
       'servico_id': servicoId,
       'status_anterior': statusAnterior,
       'status_novo': statusNovo,
-      'alterado_por_usuario_id': alteradoPorUsuarioId,
+      'alterado_por': alteradoPorUsuarioId,
       if (observacao != null) 'observacao': observacao,
       'created_at': createdAt.toIso8601String(),
     };
@@ -48,4 +48,13 @@ class HistoricoStatusServicoModel extends HistoricoStatusServico {
       createdAt: entity.createdAt,
     );
   }
+  HistoricoStatusServico toEntity() => HistoricoStatusServico(
+    id: id,
+    servicoId: servicoId,
+    statusAnterior: statusAnterior,
+    statusNovo: statusNovo,
+    alteradoPorUsuarioId: alteradoPorUsuarioId,
+    observacao: observacao,
+    createdAt: createdAt,
+  );
 }

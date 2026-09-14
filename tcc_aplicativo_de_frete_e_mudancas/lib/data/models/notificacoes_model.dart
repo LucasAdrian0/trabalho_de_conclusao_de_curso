@@ -1,3 +1,4 @@
+import '../mappers/database_enums.dart';
 import '../../domain/entities/notificacoes_entity.dart';
 
 class NotificacoesModel extends NotificacoesEntity {
@@ -18,7 +19,7 @@ class NotificacoesModel extends NotificacoesEntity {
       usuarioId: json['usuario_id'] as String,
       titulo: json['titulo'] as String,
       mensagem: json['mensagem'] as String,
-      tipo: json['tipo'] as String,
+      tipo: TipoNotificacaoMapper.fromDatabase(json['tipo'] as String),
       lida: json['lida'] as bool? ?? false,
       lidaEm: json['lida_em'] != null
           ? DateTime.parse(json['lida_em'] as String)
@@ -33,14 +34,23 @@ class NotificacoesModel extends NotificacoesEntity {
       'usuario_id': usuarioId,
       'titulo': titulo,
       'mensagem': mensagem,
-      'tipo': tipo,
+      'tipo': tipo.databaseValue,
       'lida': lida,
       if (lidaEm != null) 'lida_em': lidaEm!.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
   }
 
-  NotificacoesEntity toEntity() => this;
+  NotificacoesEntity toEntity() => NotificacoesEntity(
+    tipo: tipo,
+    id: id,
+    usuarioId: usuarioId,
+    titulo: titulo,
+    mensagem: mensagem,
+    lida: lida,
+    lidaEm: lidaEm,
+    createdAt: createdAt,
+  );
 
   factory NotificacoesModel.fromEntity(NotificacoesEntity entity) {
     return NotificacoesModel(

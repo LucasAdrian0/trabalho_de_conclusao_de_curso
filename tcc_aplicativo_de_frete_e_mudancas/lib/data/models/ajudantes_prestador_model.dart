@@ -26,7 +26,12 @@ class AjudantesPrestadorModel extends AjudantesPrestador {
     };
   }
 
-  AjudantesPrestador toEntity() => this;
+  AjudantesPrestador toEntity() => AjudantesPrestador(
+    prestadorId: prestadorId,
+    ofereceAjudantes: ofereceAjudantes,
+    quantidadeDisponivel: quantidadeDisponivel,
+    valorPorAjudante: valorPorAjudante,
+  );
 
   factory AjudantesPrestadorModel.fromEntity(AjudantesPrestador entity) {
     return AjudantesPrestadorModel(

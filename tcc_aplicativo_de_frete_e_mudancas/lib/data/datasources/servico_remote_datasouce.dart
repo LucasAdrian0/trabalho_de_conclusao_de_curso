@@ -1,3 +1,4 @@
+import '../mappers/database_enums.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/enums/status_servico.dart';
 import '../models/servico_model.dart';
@@ -6,11 +7,10 @@ abstract class ServicoRemoteDataSource {
   Future<ServicoModel?> buscarPorId(String id);
   Future<List<ServicoModel>> listarPorClienteId(String clienteId);
   Future<List<ServicoModel>> listarPorPrestadorId(String prestadorId);
-  Future<void> criar(ServicoModel servico);
+  Future<ServicoModel> aceitarOrcamento(String orcamentoId);
   Future<void> atualizarStatus({
     required String servicoId,
     required StatusServico novoStatus,
-    required String usuarioId,
     String? observacao,
   });
 }
@@ -42,7 +42,9 @@ class ServicoRemoteDataSourceImpl implements ServicoRemoteDataSource {
         .eq('cliente_id', clienteId);
 
     final lista = response as List;
-    return lista.map((e) => ServicoModel.fromJson(e as Map<String, dynamic>)).toList();
+    return lista
+        .map((e) => ServicoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
@@ -53,31 +55,33 @@ class ServicoRemoteDataSourceImpl implements ServicoRemoteDataSource {
         .eq('prestador_id', prestadorId);
 
     final lista = response as List;
-    return lista.map((e) => ServicoModel.fromJson(e as Map<String, dynamic>)).toList();
+    return lista
+        .map((e) => ServicoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
-  Future<void> criar(ServicoModel servico) async {
-    await supabase.from('servicos').insert(servico.toJson());
+  Future<ServicoModel> aceitarOrcamento(String orcamentoId) async {
+    final response = await supabase.rpc(
+      'aceitar_orcamento',
+      params: {'p_orcamento_id': orcamentoId},
+    );
+    return ServicoModel.fromJson(Map<String, dynamic>.from(response as Map));
   }
 
   @override
   Future<void> atualizarStatus({
     required String servicoId,
     required StatusServico novoStatus,
-    required String usuarioId,
     String? observacao,
   }) async {
-    await supabase
-        .from('servicos')
-        .update({'status': novoStatus.name})
-        .eq('id', servicoId);
-
-    await supabase.from('historico_status_servico').insert({
-  'servico_id': servicoId,
-  'status_novo': novoStatus.name,
-  'alterado_por_usuario_id': usuarioId,
-  'observacao': observacao,
-});
+    await supabase.rpc(
+      'atualizar_status_servico',
+      params: {
+        'p_servico_id': servicoId,
+        'p_status': novoStatus.databaseValue,
+        'p_observacao': observacao,
+      },
+    );
   }
 }

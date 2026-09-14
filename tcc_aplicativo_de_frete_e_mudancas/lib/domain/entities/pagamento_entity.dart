@@ -6,8 +6,10 @@ class PagamentoEntity {
   final String servicoId;
   final String clienteId;
   final double valor;
-  final MetodoPagamento metodoPagamento; // Ex: 'pix', 'cartao_credito', 'boleto'
-  final StatusPagamento status; // Ex: 'pendente', 'aprovado', 'recusado', 'reembolsado'
+  final MetodoPagamento
+  metodoPagamento; // Ex: 'pix', 'cartao_credito', 'boleto'
+  final StatusPagamento
+  status; // Ex: 'pendente', 'aprovado', 'recusado', 'reembolsado'
   final String? transacaoId;
   final DateTime? aprovadoEm;
   final DateTime createdAt;
@@ -24,19 +26,19 @@ class PagamentoEntity {
     required this.createdAt,
   });
 
-bool estaPendente() => status == StatusPagamento.pendente;
+  bool estaPendente() => status == StatusPagamento.pendente;
 
-bool estaAprovado() => status == StatusPagamento.aprovado;
+  bool estaAprovado() => status == StatusPagamento.aprovado;
 
-bool estaRecusado() => status == StatusPagamento.recusado;
+  bool estaRecusado() => status == StatusPagamento.recusado;
 
-bool estaCancelado() => status == StatusPagamento.cancelado;
+  bool estaCancelado() => status == StatusPagamento.cancelado;
 
-bool estaEstornado() => status == StatusPagamento.estornado;
+  bool estaEstornado() => status == StatusPagamento.estornado;
 
-bool foiFinalizado() => 
-    status == StatusPagamento.aprovado || 
-    status == StatusPagamento.recusado || 
-    status == StatusPagamento.cancelado || 
-    status == StatusPagamento.estornado;
+  bool foiFinalizado() =>
+      status == StatusPagamento.aprovado ||
+      status == StatusPagamento.recusado ||
+      status == StatusPagamento.cancelado ||
+      status == StatusPagamento.estornado;
 }

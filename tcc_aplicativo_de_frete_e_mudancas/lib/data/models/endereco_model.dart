@@ -1,5 +1,5 @@
+import '../mappers/database_enums.dart';
 import '../../domain/entities/endereco_entity.dart';
-import '../../domain/enums/tipo_endereco.dart';
 
 class EnderecoModel extends EnderecoEntity {
   const EnderecoModel({
@@ -22,13 +22,13 @@ class EnderecoModel extends EnderecoEntity {
   factory EnderecoModel.fromJson(Map<String, dynamic> json) {
     return EnderecoModel(
       id: json['id'] as String,
-      usuarioId: json['usuario_id'] as String,
-      tipo: TipoEndereco.fromString(json['tipo'] as String?),
-      cep: json['cep'] as String,
+      usuarioId: json['usuario_id'] as String?,
+      tipo: TipoEnderecoMapper.fromDatabase(json['tipo'] as String?),
+      cep: json['cep'] as String? ?? '',
       logradouro: json['logradouro'] as String,
-      numero: json['numero'] as String,
+      numero: json['numero'] as String? ?? '',
       complemento: json['complemento'] as String?,
-      bairro: json['bairro'] as String,
+      bairro: json['bairro'] as String? ?? '',
       cidade: json['cidade'] as String,
       estado: json['estado'] as String,
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -57,7 +57,22 @@ class EnderecoModel extends EnderecoEntity {
     };
   }
 
-  EnderecoEntity toEntity() => this;
+  EnderecoEntity toEntity() => EnderecoEntity(
+    id: id,
+    usuarioId: usuarioId,
+    tipo: tipo,
+    cep: cep,
+    logradouro: logradouro,
+    numero: numero,
+    complemento: complemento,
+    bairro: bairro,
+    cidade: cidade,
+    estado: estado,
+    latitude: latitude,
+    longitude: longitude,
+    temElevador: temElevador,
+    andar: andar,
+  );
 
   factory EnderecoModel.fromEntity(EnderecoEntity entity) {
     return EnderecoModel(

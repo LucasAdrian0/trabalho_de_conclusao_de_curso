@@ -1,4 +1,4 @@
-import 'package:tcc_frete_urbano/domain/enums/status_servico.dart';
+import '../mappers/database_enums.dart';
 import '../../domain/entities/servico_entity.dart';
 import 'historico_status_servico_model.dart';
 
@@ -28,12 +28,12 @@ class ServicoModel extends ServicoEntity {
       prestadorId: json['prestador_id'] as String,
       veiculoId: json['veiculo_id'] as String,
       valorTotal: (json['valor_total'] as num).toDouble(),
-      
+
       // Converte a String (snake_case ou camelCase) vinda do Supabase em StatusServico
-      status: StatusServico.fromString(json['status'] as String?),
-      
+      status: StatusServicoMapper.fromDatabase(json['status'] as String?),
+
       dataAgendada: DateTime.parse(json['data_agendada'] as String),
-      horarioAgendado: json['horario_agendado'] as String,
+      horarioAgendado: json['horario_agendado'] as String? ?? '',
       iniciadoEm: json['iniciado_em'] != null
           ? DateTime.parse(json['iniciado_em'] as String)
           : null,
@@ -42,9 +42,12 @@ class ServicoModel extends ServicoEntity {
           : null,
       historico: json['historico'] != null
           ? (json['historico'] as List)
-              .map((e) => HistoricoStatusServicoModel.fromJson(
-                  e as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (e) => HistoricoStatusServicoModel.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : const [],
     );
   }
@@ -58,18 +61,34 @@ class ServicoModel extends ServicoEntity {
       'prestador_id': prestadorId,
       'veiculo_id': veiculoId,
       'valor_total': valorTotal,
-      
+
       // Converte a instância do enum para String na persitência
-      'status': status.name,
-      
+      'status': status.databaseValue,
+
       'data_agendada': dataAgendada.toIso8601String(),
-      'horario_agendado': horarioAgendado,
+      'horario_agendado': horarioAgendado.isEmpty ? null : horarioAgendado,
       if (iniciadoEm != null) 'iniciado_em': iniciadoEm!.toIso8601String(),
       if (concluidoEm != null) 'concluido_em': concluidoEm!.toIso8601String(),
     };
   }
 
-  ServicoEntity toEntity() => this;
+  ServicoEntity toEntity() => ServicoEntity(
+    id: id,
+    solicitacaoId: solicitacaoId,
+    orcamentoId: orcamentoId,
+    clienteId: clienteId,
+    prestadorId: prestadorId,
+    veiculoId: veiculoId,
+    valorTotal: valorTotal,
+    status: status,
+    dataAgendada: dataAgendada,
+    horarioAgendado: horarioAgendado,
+    iniciadoEm: iniciadoEm,
+    concluidoEm: concluidoEm,
+    historico: historico
+        .map((item) => HistoricoStatusServicoModel.fromEntity(item).toEntity())
+        .toList(),
+  );
 
   factory ServicoModel.fromEntity(ServicoEntity entity) {
     return ServicoModel(

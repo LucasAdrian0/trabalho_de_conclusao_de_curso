@@ -3,7 +3,7 @@ import '../models/orcamento_model.dart';
 
 abstract class OrcamentoRemoteDataSource {
   Future<OrcamentoModel> criar(OrcamentoModel model);
-  Future<List<OrcamentoModel>> buscarPorFrete(String freteId);
+  Future<List<OrcamentoModel>> buscarPorSolicitacao(String solicitacaoId);
   Future<List<OrcamentoModel>> buscarPorPrestador(String prestadorId);
   Future<OrcamentoModel> atualizarStatus(String id, String statusName);
 }
@@ -27,12 +27,14 @@ class OrcamentoRemoteDataSourceImpl implements OrcamentoRemoteDataSource {
   }
 
   @override
-  Future<List<OrcamentoModel>> buscarPorFrete(String freteId) async {
+  Future<List<OrcamentoModel>> buscarPorSolicitacao(
+    String solicitacaoId,
+  ) async {
     final response = await _client
         .from(_table)
         .select()
-        .eq('frete_id', freteId)
-        .order('criado_em', ascending: false);
+        .eq('solicitacao_id', solicitacaoId)
+        .order('created_at', ascending: false);
 
     return (response as List)
         .map((e) => OrcamentoModel.fromJson(e as Map<String, dynamic>))
@@ -45,7 +47,7 @@ class OrcamentoRemoteDataSourceImpl implements OrcamentoRemoteDataSource {
         .from(_table)
         .select()
         .eq('prestador_id', prestadorId)
-        .order('criado_em', ascending: false);
+        .order('created_at', ascending: false);
 
     return (response as List)
         .map((e) => OrcamentoModel.fromJson(e as Map<String, dynamic>))
@@ -58,7 +60,7 @@ class OrcamentoRemoteDataSourceImpl implements OrcamentoRemoteDataSource {
         .from(_table)
         .update({
           'status': statusName,
-          'atualizado_em': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
         })
         .eq('id', id)
         .select()

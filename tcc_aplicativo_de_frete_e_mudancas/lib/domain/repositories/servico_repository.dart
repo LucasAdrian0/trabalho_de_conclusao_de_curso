@@ -5,12 +5,12 @@ abstract class ServicoRepository {
   Future<ServicoEntity?> buscarPorId(String id);
   Future<List<ServicoEntity>> listarPorClienteId(String clienteId);
   Future<List<ServicoEntity>> listarPorPrestadorId(String prestadorId);
-  Future<void> criar(ServicoEntity servico);
-  
+  Future<ServicoEntity> aceitarOrcamento(String orcamentoId);
+
   Future<void> atualizarStatus({
     required String servicoId,
-    required StatusServico novoStatus, // <-- Alterado de String para StatusServico
-    required String usuarioId,
+    required StatusServico
+    novoStatus, // <-- Alterado de String para StatusServico
     String? observacao,
   });
 }

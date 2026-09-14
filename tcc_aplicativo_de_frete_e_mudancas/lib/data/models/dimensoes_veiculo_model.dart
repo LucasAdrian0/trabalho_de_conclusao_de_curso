@@ -16,14 +16,14 @@ class DimensoesVeiculoModel extends DimensoesVeiculo {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'largura': largura,
-      'altura': altura,
-      'comprimento': comprimento,
-    };
+    return {'largura': largura, 'altura': altura, 'comprimento': comprimento};
   }
 
-  DimensoesVeiculo toEntity() => this;
+  DimensoesVeiculo toEntity() => DimensoesVeiculo(
+    largura: largura,
+    altura: altura,
+    comprimento: comprimento,
+  );
 
   factory DimensoesVeiculoModel.fromEntity(DimensoesVeiculo entity) {
     return DimensoesVeiculoModel(

@@ -1,9 +1,9 @@
 class HistoricoStatusServico {
   final String id;
   final String servicoId;
-  final String statusAnterior;
+  final String? statusAnterior;
   final String statusNovo;
-  final String alteradoPorUsuarioId;
+  final String? alteradoPorUsuarioId;
   final String? observacao;
   final DateTime createdAt;
 

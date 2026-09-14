@@ -1,6 +1,5 @@
+import '../mappers/database_enums.dart';
 import 'package:tcc_frete_urbano/data/models/item_solicitado.dart';
-import 'package:tcc_frete_urbano/domain/enums/status_solicitacao.dart';
-import 'package:tcc_frete_urbano/domain/enums/tipo_servico_solicitado.dart';
 
 import '../../domain/entities/solicitacao_entity.dart';
 import 'endereco_model.dart';
@@ -35,27 +34,27 @@ class SolicitacaoModel extends SolicitacaoEntity {
         json['endereco_destino'] as Map<String, dynamic>,
       ),
       dataDesejada: DateTime.parse(json['data_desejada'] as String),
-      horarioDesejado: json['horario_desejado'] as String,
-      
+      horarioDesejado: json['horario_desejado'] as String? ?? '',
+
       // Deserialização segura utilizando os métodos dos Enums
-      tiposervico: TipoServicoSolicitado.fromString(
+      tiposervico: TipoServicoSolicitadoMapper.fromDatabase(
         json['tipo_servico'] as String?,
       ),
-      status: StatusSolicitacao.fromString(
-        json['status'] as String?,
-      ),
+      status: StatusSolicitacaoMapper.fromDatabase(json['status'] as String?),
 
-      volumeEstimadoM3: (json['volume_estimado_m3'] as num).toDouble(),
+      volumeEstimadoM3: (json['volume_estimado_m3'] as num?)?.toDouble() ?? 0,
       necessitaAjudantes: json['necessita_ajudantes'] as bool? ?? false,
       quantidadeAjudantes: json['quantidade_ajudantes'] as int? ?? 0,
-      distanciaKm: (json['distancia_km'] as num).toDouble(),
-      duracaoEstimadaMin: json['duracao_estimada_min'] as int,
+      distanciaKm: (json['distancia_km'] as num?)?.toDouble() ?? 0,
+      duracaoEstimadaMin: json['duracao_estimada_min'] as int? ?? 0,
       observacoes: json['observacoes'] as String?,
       itens: json['itens'] != null
           ? (json['itens'] as List)
-              .map<ItemSolicitacaoModel>((e) =>
-                  ItemSolicitacaoModel.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map<ItemSolicitacaoModel>(
+                  (e) =>
+                      ItemSolicitacaoModel.fromJson(e as Map<String, dynamic>),
+                )
+                .toList()
           : const [],
     );
   }
@@ -64,14 +63,14 @@ class SolicitacaoModel extends SolicitacaoEntity {
     return {
       'id': id,
       'cliente_id': clienteId,
-      'origem_id': enderecoOrigem.id,
-      'destino_id': enderecoDestino.id,
+      'endereco_origem_id': enderecoOrigem.id,
+      'endereco_destino_id': enderecoDestino.id,
       'data_desejada': dataDesejada.toIso8601String(),
-      'horario_desejado': horarioDesejado,
-      
+      'horario_desejado': horarioDesejado.isEmpty ? null : horarioDesejado,
+
       // Serialização dos Enums
-      'tipo_servico': tiposervico.name,
-      'status': status.name,
+      'tipo_servico': tiposervico.databaseValue,
+      'status': status.databaseValue,
 
       'volume_estimado_m3': volumeEstimadoM3,
       'necessita_ajudantes': necessitaAjudantes,
@@ -82,7 +81,25 @@ class SolicitacaoModel extends SolicitacaoEntity {
     };
   }
 
-  SolicitacaoEntity toEntity() => this;
+  SolicitacaoEntity toEntity() => SolicitacaoEntity(
+    id: id,
+    clienteId: clienteId,
+    enderecoOrigem: EnderecoModel.fromEntity(enderecoOrigem).toEntity(),
+    enderecoDestino: EnderecoModel.fromEntity(enderecoDestino).toEntity(),
+    dataDesejada: dataDesejada,
+    horarioDesejado: horarioDesejado,
+    tiposervico: tiposervico,
+    volumeEstimadoM3: volumeEstimadoM3,
+    necessitaAjudantes: necessitaAjudantes,
+    quantidadeAjudantes: quantidadeAjudantes,
+    distanciaKm: distanciaKm,
+    duracaoEstimadaMin: duracaoEstimadaMin,
+    status: status,
+    observacoes: observacoes,
+    itens: itens
+        .map((item) => ItemSolicitacaoModel.fromEntity(item).toEntity())
+        .toList(),
+  );
 
   factory SolicitacaoModel.fromEntity(SolicitacaoEntity entity) {
     return SolicitacaoModel(

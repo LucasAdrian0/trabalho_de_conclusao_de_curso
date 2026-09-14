@@ -29,13 +29,21 @@ class AvaliacaoModel extends AvaliacaoEntity {
       'servico_id': servicoId,
       'cliente_id': clienteId,
       'prestador_id': prestadorId,
-      'nota': nota,
+      'nota': nota.toInt(),
       if (comentario != null) 'comentario': comentario,
       'created_at': createdAt.toIso8601String(),
     };
   }
 
-  AvaliacaoEntity toEntity() => this;
+  AvaliacaoEntity toEntity() => AvaliacaoEntity(
+    id: id,
+    servicoId: servicoId,
+    clienteId: clienteId,
+    prestadorId: prestadorId,
+    nota: nota,
+    comentario: comentario,
+    createdAt: createdAt,
+  );
 
   factory AvaliacaoModel.fromEntity(AvaliacaoEntity entity) {
     return AvaliacaoModel(
