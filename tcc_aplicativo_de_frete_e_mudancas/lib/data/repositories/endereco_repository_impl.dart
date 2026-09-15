@@ -1,43 +1,29 @@
-import '../errors/executar_repositorio.dart';
-import 'package:tcc_frete_urbano/data/datasources/endereco_remote_datasouce.dart';
 import '../../domain/entities/endereco_entity.dart';
 import '../../domain/repositories/endereco_repository.dart';
+import '../datasources/endereco_remote_datasource.dart';
+import '../errors/executar_repositorio.dart';
 import '../models/endereco_model.dart';
 
 class EnderecoRepositoryImpl implements EnderecoRepository {
-  final EnderecoRemoteDataSource remoteDataSource;
-
-  EnderecoRepositoryImpl({required this.remoteDataSource});
-
-  @override
-  Future<List<EnderecoEntity>> listarPorUsuarioId(String usuarioId) =>
-      executarRepositorio(() async {
-        final models = await remoteDataSource.listarPorUsuarioId(usuarioId);
-        return models.map((model) => model.toEntity()).toList();
-      });
+  final EnderecoRemoteDataSource dataSource;
+  EnderecoRepositoryImpl(this.dataSource);
 
   @override
-  Future<EnderecoEntity?> buscarPorId(String id) =>
-      executarRepositorio(() async {
-        final model = await remoteDataSource.buscarPorId(id);
-        return model?.toEntity();
-      });
-
+  Future<List<EnderecoEntity>> listarPorUsuarioId(String id) =>
+      executarRepositorio(
+        () async => (await dataSource.listar(
+          id,
+        )).map((model) => model.toEntity()).toList(),
+      );
   @override
-  Future<void> salvar(EnderecoEntity endereco) => executarRepositorio(() async {
-    final model = EnderecoModel.fromEntity(endereco);
-    await remoteDataSource.salvar(model);
-  });
-
+  Future<EnderecoEntity?> buscarPorId(String id) => executarRepositorio(
+    () async => (await dataSource.buscar(id))?.toEntity(),
+  );
   @override
-  Future<void> atualizar(EnderecoEntity endereco) =>
-      executarRepositorio(() async {
-        final model = EnderecoModel.fromEntity(endereco);
-        await remoteDataSource.atualizar(model);
-      });
-
+  Future<void> salvar(EnderecoEntity endereco) => executarRepositorio(
+    () => dataSource.salvar(EnderecoModel.fromEntity(endereco)),
+  );
   @override
-  Future<void> deletar(String id) => executarRepositorio(() async {
-    await remoteDataSource.deletar(id);
-  });
+  Future<void> excluir(String id) =>
+      executarRepositorio(() => dataSource.excluir(id));
 }

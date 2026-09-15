@@ -1,1 +1,1 @@
-enum TipoEndereco { origem, destino, cadastro }
+enum TipoEndereco { origem, destino, residencial, outro }

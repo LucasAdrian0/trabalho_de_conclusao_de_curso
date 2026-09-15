@@ -11,9 +11,6 @@ class RecusarOrcamento {
   const RecusarOrcamento(this._auth, this._orcamentos);
   Future<OrcamentoEntity> call(String orcamentoId) async {
     exigirUsuario(_auth);
-    return _orcamentos.atualizarStatus(
-      orcamentoId: orcamentoId,
-      novoStatus: StatusOrcamento.recusado,
-    );
+    return _orcamentos.atualizarStatus(orcamentoId, StatusOrcamento.recusado);
   }
 }

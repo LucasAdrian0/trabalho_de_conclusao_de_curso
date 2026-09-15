@@ -1,4 +1,4 @@
-import 'package:tcc_frete_urbano/domain/enums/tipo_usuario.dart';
+import '../enums/tipo_usuario.dart';
 
 class UsuarioEntity {
   final String id;
@@ -6,12 +6,10 @@ class UsuarioEntity {
   final String nome;
   final String email;
   final String? telefone;
-  final String? fotoUrl;
-  final bool emailVerificado;
+  final String? fotoPerfilUrl;
   final bool ativo;
-  final DateTime? ultimoLoginEm;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime criadoEm;
+  final DateTime atualizadoEm;
 
   const UsuarioEntity({
     required this.id,
@@ -19,27 +17,11 @@ class UsuarioEntity {
     required this.nome,
     required this.email,
     this.telefone,
-    this.fotoUrl,
-    this.emailVerificado = false,
+    this.fotoPerfilUrl,
     this.ativo = true,
-    this.ultimoLoginEm,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.criadoEm,
+    required this.atualizadoEm,
   });
-
-  // Regras de negócio do domínio
-  bool validarEmail() {
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
-    return emailRegex.hasMatch(email);
-  }
-
-  bool validarTelefone() {
-    if (telefone == null || telefone!.isEmpty) return false;
-    final apenasDigitos = telefone!.replaceAll(RegExp(r'\D'), '');
-    return apenasDigitos.length >= 10 && apenasDigitos.length <= 11;
-  }
-
-  bool podeAutenticar() => ativo && emailVerificado;
+  bool validarEmail() => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
+  bool podeAutenticar() => ativo;
 }

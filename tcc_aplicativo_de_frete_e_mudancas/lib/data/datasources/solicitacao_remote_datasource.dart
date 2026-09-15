@@ -1,110 +1,64 @@
-import '../mappers/database_enums.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../domain/enums/tipo_servico_solicitado.dart';
-import '../../domain/enums/status_solicitacao.dart';
 import '../models/endereco_model.dart';
-import '../models/item_solicitado.dart';
+import '../models/item_mudanca_model.dart';
 import '../models/solicitacao_model.dart';
 
 abstract class SolicitacaoRemoteDataSource {
-  Future<SolicitacaoModel?> buscarPorId(String id);
-  Future<List<SolicitacaoModel>> listarPorClienteId(String clienteId);
-  Future<List<SolicitacaoModel>> listarAbertasPorRegiao(
-    String cidade,
-    String estado, {
-    TipoServicoSolicitado? tipoServico,
-  });
-  Future<void> salvar(SolicitacaoModel solicitacao);
-  Future<void> atualizarStatus(String solicitacaoId, String status);
+  Future<SolicitacaoModel?> buscar(String id);
+  Future<List<SolicitacaoModel>> listarCliente(String clienteId);
+  Future<List<SolicitacaoModel>> listarAbertas();
+  Future<void> criar(SolicitacaoModel solicitacao);
+  Future<void> atualizarStatus(String id, String status);
 }
 
 class SolicitacaoRemoteDataSourceImpl implements SolicitacaoRemoteDataSource {
-  final SupabaseClient supabase;
-
-  SolicitacaoRemoteDataSourceImpl({required this.supabase});
-
-  static const String _selectQuery =
-      '*, endereco_origem:enderecos!endereco_origem_id(*), endereco_destino:enderecos!endereco_destino_id(*), itens:itens_solicitacao(*)';
-
+  final SupabaseClient client;
+  SolicitacaoRemoteDataSourceImpl(this.client);
+  static const selecao =
+      '*,endereco_origem:enderecos!endereco_origem_id(*),endereco_destino:enderecos!endereco_destino_id(*),itens:itens_mudanca(*)';
   @override
-  Future<SolicitacaoModel?> buscarPorId(String id) async {
-    final response = await supabase
+  Future<SolicitacaoModel?> buscar(String id) async {
+    final j = await client
         .from('solicitacoes')
-        .select(_selectQuery)
+        .select(selecao)
         .eq('id', id)
         .maybeSingle();
-
-    if (response == null) return null;
-    return SolicitacaoModel.fromJson(response);
+    return j == null ? null : SolicitacaoModel.fromJson(j);
   }
 
   @override
-  Future<List<SolicitacaoModel>> listarPorClienteId(String clienteId) async {
-    final response = await supabase
-        .from('solicitacoes')
-        .select(_selectQuery)
-        .eq('cliente_id', clienteId);
-
-    final lista = response as List;
-    return lista
-        .map((e) => SolicitacaoModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
+  Future<List<SolicitacaoModel>> listarCliente(String id) async =>
+      (await client.from('solicitacoes').select(selecao).eq('cliente_id', id))
+          .map(SolicitacaoModel.fromJson)
+          .toList();
   @override
-  Future<List<SolicitacaoModel>> listarAbertasPorRegiao(
-    String cidade,
-    String estado, {
-    TipoServicoSolicitado? tipoServico,
-  }) async {
-    var query = supabase
-        .from('solicitacoes')
-        .select(
-          _selectQuery.replaceAll(
-            '!endereco_origem_id(*)',
-            '!endereco_origem_id!inner(*)',
-          ),
-        )
-        .eq('status', StatusSolicitacao.aguardandoPrestador.databaseValue)
-        .eq('endereco_origem.cidade', cidade)
-        .eq('endereco_origem.estado', estado);
-
-    // Filtra pelo enum caso seja passado
-    if (tipoServico != null) {
-      query = query.eq('tipo_servico', tipoServico.databaseValue);
-    }
-
-    final response = await query;
-    final lista = response as List;
-    return lista
-        .map((e) => SolicitacaoModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
+  Future<List<SolicitacaoModel>> listarAbertas() async =>
+      (await client
+              .from('solicitacoes')
+              .select(selecao)
+              .eq('status', 'aguardando_prestador'))
+          .map(SolicitacaoModel.fromJson)
+          .toList();
   @override
-  Future<void> salvar(SolicitacaoModel solicitacao) async {
-    await supabase.rpc(
+  Future<void> criar(SolicitacaoModel s) async {
+    await client.rpc(
       'criar_solicitacao_com_itens',
       params: {
-        'p_solicitacao': solicitacao.toJson(),
-        'p_origem': EnderecoModel.fromEntity(
-          solicitacao.enderecoOrigem,
-        ).toJson(),
-        'p_destino': EnderecoModel.fromEntity(
-          solicitacao.enderecoDestino,
-        ).toJson(),
-        'p_itens': solicitacao.itens
-            .map((item) => ItemSolicitacaoModel.fromEntity(item).toJson())
+        'p_solicitacao': s.toJson(),
+        'p_origem': EnderecoModel.fromEntity(s.enderecoOrigem).toJson(),
+        'p_destino': EnderecoModel.fromEntity(s.enderecoDestino).toJson(),
+        'p_itens': s.itens
+            .map((e) => ItemMudancaModel.fromEntity(e).toJson())
             .toList(),
       },
     );
   }
 
   @override
-  Future<void> atualizarStatus(String solicitacaoId, String status) async {
-    await supabase.rpc(
+  Future<void> atualizarStatus(String id, String status) async {
+    await client.rpc(
       'atualizar_status_solicitacao',
-      params: {'p_solicitacao_id': solicitacaoId, 'p_status': status},
+      params: {'p_solicitacao_id': id, 'p_status': status},
     );
   }
 }

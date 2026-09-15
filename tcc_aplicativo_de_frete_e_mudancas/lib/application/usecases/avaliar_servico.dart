@@ -3,20 +3,31 @@ import '../../domain/errors/falha.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/avaliacao_repository.dart';
 import '../../domain/repositories/servico_repository.dart';
+import '../../domain/repositories/solicitacao_repository.dart';
 import '../support/sessao.dart';
 
 class AvaliarServico {
   final AuthRepository _auth;
   final AvaliacaoRepository _avaliacoes;
   final ServicoRepository _servicos;
-  const AvaliarServico(this._auth, this._avaliacoes, this._servicos);
+  final SolicitacaoRepository _solicitacoes;
+  const AvaliarServico(
+    this._auth,
+    this._avaliacoes,
+    this._servicos,
+    this._solicitacoes,
+  );
   Future<void> call(AvaliacaoEntity avaliacao) async {
     final id = exigirUsuario(_auth);
     exigirProprietario(id, avaliacao.clienteId);
     avaliacao.validar();
     final servico = await _servicos.buscarPorId(avaliacao.servicoId);
-    if (servico == null ||
-        servico.clienteId != id ||
+    if (servico == null) {
+      throw const Falha(TipoFalha.naoEncontrado, 'Serviço não encontrado.');
+    }
+    final solicitacao = await _solicitacoes.buscarPorId(servico.solicitacaoId);
+    if (solicitacao == null ||
+        solicitacao.clienteId != id ||
         servico.prestadorId != avaliacao.prestadorId ||
         !servico.podeAvaliar()) {
       throw const Falha(

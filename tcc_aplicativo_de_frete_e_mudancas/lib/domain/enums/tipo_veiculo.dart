@@ -1,7 +1,11 @@
 enum TipoVeiculo {
-  carro,
-  moto,
-  caminhonete,
-  caminhao,
+  motocicleta,
+  utilitario,
+  fiorino,
+  saveiro,
+  strada,
+  van,
+  caminhao34,
+  vuc,
   outros,
 }

@@ -1,60 +1,55 @@
-import '../mappers/database_enums.dart';
 import '../../domain/entities/veiculo.dart';
-import 'dimensoes_veiculo_model.dart';
+import '../mappers/database_enums.dart';
 
 class VeiculoModel extends Veiculo {
   const VeiculoModel({
     required super.id,
     required super.prestadorId,
     required super.tipo,
-    required super.marca,
-    required super.modelo,
-    required super.ano,
-    required super.capacidadeKg,
-    required super.dimensoes,
-    required super.valorKm,
+    super.marca,
+    super.modelo,
+    super.ano,
+    super.capacidadeCargaKg,
+    super.comprimentoM,
+    super.larguraM,
+    super.alturaM,
+    required super.valorPorKm,
     required super.status,
-    super.fotoUrl,
+    super.regiaoAtendimento,
+    required super.criadoEm,
   });
-
-  factory VeiculoModel.fromJson(Map<String, dynamic> json) {
-    return VeiculoModel(
-      id: json['id'] as String,
-      prestadorId: json['prestador_id'] as String,
-      tipo: TipoVeiculoMapper.fromDatabase(json['tipo'] as String),
-      marca: json['marca'] as String? ?? '',
-      modelo: json['modelo'] as String? ?? '',
-      ano: json['ano'] as int? ?? 0,
-      capacidadeKg: (json['capacidade_kg'] as num?)?.toDouble() ?? 0,
-      dimensoes: DimensoesVeiculoModel.fromJson({
-        'largura': json['largura_m'] ?? 0,
-        'altura': json['altura_m'] ?? 0,
-        'comprimento': json['comprimento_m'] ?? 0,
-      }),
-      valorKm: (json['valor_km'] as num).toDouble(),
-      status: StatusVeiculoMapper.fromDatabase(json['status'] as String?),
-      fotoUrl: json['foto_url'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'prestador_id': prestadorId,
-      'tipo': tipo.databaseValue,
-      'marca': marca,
-      'modelo': modelo,
-      'ano': ano,
-      'capacidade_kg': capacidadeKg,
-      'largura_m': dimensoes.largura,
-      'altura_m': dimensoes.altura,
-      'comprimento_m': dimensoes.comprimento,
-      'valor_km': valorKm,
-      'status': status.databaseValue,
-      'foto_url': fotoUrl,
-    };
-  }
-
+  factory VeiculoModel.fromJson(Map<String, dynamic> j) => VeiculoModel(
+    id: j['id'],
+    prestadorId: j['prestador_id'],
+    tipo: TipoVeiculoMapper.fromDatabase(j['tipo_veiculo']),
+    marca: j['marca'],
+    modelo: j['modelo'],
+    ano: j['ano'],
+    capacidadeCargaKg: (j['capacidade_carga_kg'] as num?)?.toDouble(),
+    comprimentoM: (j['comprimento_m'] as num?)?.toDouble(),
+    larguraM: (j['largura_m'] as num?)?.toDouble(),
+    alturaM: (j['altura_m'] as num?)?.toDouble(),
+    valorPorKm: (j['valor_por_km'] as num).toDouble(),
+    status: StatusVeiculoMapper.fromDatabase(j['status']),
+    regiaoAtendimento: j['regiao_atendimento'],
+    criadoEm: DateTime.parse(j['criado_em']),
+  );
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'prestador_id': prestadorId,
+    'tipo_veiculo': tipo.databaseValue,
+    'marca': marca,
+    'modelo': modelo,
+    'ano': ano,
+    'capacidade_carga_kg': capacidadeCargaKg,
+    'comprimento_m': comprimentoM,
+    'largura_m': larguraM,
+    'altura_m': alturaM,
+    'valor_por_km': valorPorKm,
+    'status': status.databaseValue,
+    'regiao_atendimento': regiaoAtendimento,
+    'criado_em': criadoEm.toIso8601String(),
+  };
   Veiculo toEntity() => Veiculo(
     id: id,
     prestadorId: prestadorId,
@@ -62,26 +57,29 @@ class VeiculoModel extends Veiculo {
     marca: marca,
     modelo: modelo,
     ano: ano,
-    capacidadeKg: capacidadeKg,
-    dimensoes: DimensoesVeiculoModel.fromEntity(dimensoes).toEntity(),
-    valorKm: valorKm,
+    capacidadeCargaKg: capacidadeCargaKg,
+    comprimentoM: comprimentoM,
+    larguraM: larguraM,
+    alturaM: alturaM,
+    valorPorKm: valorPorKm,
     status: status,
-    fotoUrl: fotoUrl,
+    regiaoAtendimento: regiaoAtendimento,
+    criadoEm: criadoEm,
   );
-
-  factory VeiculoModel.fromEntity(Veiculo entity) {
-    return VeiculoModel(
-      id: entity.id,
-      prestadorId: entity.prestadorId,
-      tipo: entity.tipo,
-      marca: entity.marca,
-      modelo: entity.modelo,
-      ano: entity.ano,
-      capacidadeKg: entity.capacidadeKg,
-      dimensoes: entity.dimensoes,
-      valorKm: entity.valorKm,
-      status: entity.status,
-      fotoUrl: entity.fotoUrl,
-    );
-  }
+  factory VeiculoModel.fromEntity(Veiculo e) => VeiculoModel(
+    id: e.id,
+    prestadorId: e.prestadorId,
+    tipo: e.tipo,
+    marca: e.marca,
+    modelo: e.modelo,
+    ano: e.ano,
+    capacidadeCargaKg: e.capacidadeCargaKg,
+    comprimentoM: e.comprimentoM,
+    larguraM: e.larguraM,
+    alturaM: e.alturaM,
+    valorPorKm: e.valorPorKm,
+    status: e.status,
+    regiaoAtendimento: e.regiaoAtendimento,
+    criadoEm: e.criadoEm,
+  );
 }

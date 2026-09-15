@@ -15,7 +15,7 @@ class CriarSolicitacao {
     final id = exigirUsuario(_auth);
     exigirProprietario(id, solicitacao.clienteId);
     solicitacao.validar();
-    if (solicitacao.status != StatusSolicitacao.criado &&
+    if (solicitacao.status != StatusSolicitacao.criada &&
         solicitacao.status != StatusSolicitacao.aguardandoPrestador) {
       throw const Falha(
         TipoFalha.validacao,
@@ -26,15 +26,13 @@ class CriarSolicitacao {
       solicitacao.enderecoOrigem,
       solicitacao.enderecoDestino,
     ]) {
-      if (endereco.usuarioId != null) {
-        exigirProprietario(id, endereco.usuarioId!);
-      }
+      exigirProprietario(id, endereco.usuarioId);
     }
     final cliente = await _clientes.buscarPorUsuarioId(id);
     if (cliente == null || !cliente.podeSolicitarServico()) {
       throw const Falha(
         TipoFalha.validacao,
-        'Complete seu cadastro e confirme o e-mail antes de solicitar.',
+        'Complete seu cadastro antes de solicitar.',
       );
     }
     // O contrato representa uma gravação atômica; não divide itens/endereços aqui.

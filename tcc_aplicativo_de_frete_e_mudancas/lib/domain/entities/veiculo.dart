@@ -1,66 +1,56 @@
-import '../errors/falha.dart';
-import '../enums/tipo_veiculo.dart';
-import 'dimensoes_veiculo.dart';
 import '../enums/status_veiculo.dart';
+import '../enums/tipo_veiculo.dart';
+import '../errors/falha.dart';
 
 class Veiculo {
   final String id;
   final String prestadorId;
   final TipoVeiculo tipo;
-  final String marca;
-  final String modelo;
-  final int ano;
-  final double capacidadeKg;
-  final DimensoesVeiculo dimensoes;
-  final double valorKm;
+  final String? marca;
+  final String? modelo;
+  final int? ano;
+  final double? capacidadeCargaKg;
+  final double? comprimentoM;
+  final double? larguraM;
+  final double? alturaM;
+  final double valorPorKm;
   final StatusVeiculo status;
-  final String? fotoUrl;
+  final String? regiaoAtendimento;
+  final DateTime criadoEm;
 
   const Veiculo({
     required this.id,
     required this.prestadorId,
     required this.tipo,
-    required this.marca,
-    required this.modelo,
-    required this.ano,
-    required this.capacidadeKg,
-    required this.dimensoes,
-    required this.valorKm,
+    this.marca,
+    this.modelo,
+    this.ano,
+    this.capacidadeCargaKg,
+    this.comprimentoM,
+    this.larguraM,
+    this.alturaM,
+    required this.valorPorKm,
     required this.status,
-    this.fotoUrl,
+    this.regiaoAtendimento,
+    required this.criadoEm,
   });
-
-  // Comparação direta com o enum sem depender de Strings
   bool estaAptoParaUso() => status == StatusVeiculo.ativo;
-
-  bool suportaCarga(double pesoKg, double volumeM3) {
-    return pesoKg.isFinite &&
-        volumeM3.isFinite &&
-        pesoKg >= 0 &&
-        volumeM3 >= 0 &&
-        pesoKg <= capacidadeKg &&
-        volumeM3 <= dimensoes.volumeM3;
-  }
-
-  double calcularCustoBase(double distanciaKm) {
-    if (!distanciaKm.isFinite || distanciaKm < 0) {
-      throw Falha(TipoFalha.validacao, 'Distância inválida.');
-    }
-    return distanciaKm * valorKm;
-  }
-
+  double? get volumeM3 =>
+      comprimentoM == null || larguraM == null || alturaM == null
+      ? null
+      : comprimentoM! * larguraM! * alturaM!;
   void validar() {
-    if (!valorKm.isFinite ||
-        valorKm < 0 ||
-        !capacidadeKg.isFinite ||
-        capacidadeKg < 0 ||
-        !dimensoes.largura.isFinite ||
-        dimensoes.largura < 0 ||
-        !dimensoes.altura.isFinite ||
-        dimensoes.altura < 0 ||
-        !dimensoes.comprimento.isFinite ||
-        dimensoes.comprimento < 0) {
-      throw Falha(TipoFalha.validacao, 'Valores do veículo inválidos.');
+    if ([
+      valorPorKm,
+      capacidadeCargaKg,
+      comprimentoM,
+      larguraM,
+      alturaM,
+    ].whereType<double>().any((v) => !v.isFinite || v < 0)) {
+      throw const Falha(
+        TipoFalha.validacao,
+        'Dados numéricos do veículo inválidos.',
+      );
     }
   }
 }

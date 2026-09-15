@@ -1,13 +1,10 @@
-import 'package:tcc_frete_urbano/domain/enums/status_orcamento.dart';
-
 import '../entities/orcamento_entity.dart';
+import '../enums/status_orcamento.dart';
 
 abstract class OrcamentoRepository {
-  Future<OrcamentoEntity> criarOrcamento(OrcamentoEntity orcamento);
-  Future<List<OrcamentoEntity>> buscarPorSolicitacao(String solicitacaoId);
-  Future<List<OrcamentoEntity>> buscarPorPrestador(String prestadorId);
-  Future<OrcamentoEntity> atualizarStatus({
-    required String orcamentoId,
-    required StatusOrcamento novoStatus,
-  });
+  Future<OrcamentoEntity> criar(OrcamentoEntity orcamento);
+  Future<List<OrcamentoEntity>> gerarAutomaticos(String solicitacaoId);
+  Future<List<OrcamentoEntity>> listarPorSolicitacao(String id);
+  Future<List<OrcamentoEntity>> listarPorPrestador(String id);
+  Future<OrcamentoEntity> atualizarStatus(String id, StatusOrcamento status);
 }

@@ -1,44 +1,26 @@
-import 'package:tcc_frete_urbano/domain/enums/metodo_pagamento.dart';
-import 'package:tcc_frete_urbano/domain/enums/status_pagamento.dart';
+import '../enums/metodo_pagamento.dart';
+import '../enums/status_pagamento.dart';
 
 class PagamentoEntity {
   final String id;
   final String servicoId;
-  final String clienteId;
+  final MetodoPagamento metodo;
   final double valor;
-  final MetodoPagamento
-  metodoPagamento; // Ex: 'pix', 'cartao_credito', 'boleto'
-  final StatusPagamento
-  status; // Ex: 'pendente', 'aprovado', 'recusado', 'reembolsado'
-  final String? transacaoId;
-  final DateTime? aprovadoEm;
-  final DateTime createdAt;
+  final StatusPagamento status;
+  final String? gateway;
+  final String? gatewayTransacaoId;
+  final DateTime criadoEm;
+  final DateTime atualizadoEm;
 
   const PagamentoEntity({
     required this.id,
     required this.servicoId,
-    required this.clienteId,
+    required this.metodo,
     required this.valor,
-    required this.metodoPagamento,
     required this.status,
-    this.transacaoId,
-    this.aprovadoEm,
-    required this.createdAt,
+    this.gateway,
+    this.gatewayTransacaoId,
+    required this.criadoEm,
+    required this.atualizadoEm,
   });
-
-  bool estaPendente() => status == StatusPagamento.pendente;
-
-  bool estaAprovado() => status == StatusPagamento.aprovado;
-
-  bool estaRecusado() => status == StatusPagamento.recusado;
-
-  bool estaCancelado() => status == StatusPagamento.cancelado;
-
-  bool estaEstornado() => status == StatusPagamento.estornado;
-
-  bool foiFinalizado() =>
-      status == StatusPagamento.aprovado ||
-      status == StatusPagamento.recusado ||
-      status == StatusPagamento.cancelado ||
-      status == StatusPagamento.estornado;
 }

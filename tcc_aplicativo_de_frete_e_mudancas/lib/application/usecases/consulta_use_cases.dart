@@ -3,12 +3,15 @@ import '../../domain/entities/pagamento_entity.dart';
 import '../../domain/entities/notificacoes_entity.dart';
 import '../../domain/entities/solicitacao_entity.dart';
 import '../../domain/entities/servico_entity.dart';
+import '../../domain/entities/orcamento_entity.dart';
+import '../../domain/errors/falha.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/usuario_repository.dart';
 import '../../domain/repositories/pagamento_repository.dart';
 import '../../domain/repositories/notificacoes_repository.dart';
 import '../../domain/repositories/solicitacao_repository.dart';
 import '../../domain/repositories/servico_repository.dart';
+import '../../domain/repositories/orcamento_repository.dart';
 import '../support/sessao.dart';
 
 class ConsultarMeuPerfil {
@@ -53,6 +56,28 @@ class ListarMinhasSolicitacoes {
   const ListarMinhasSolicitacoes(this._auth, this._solicitacoes);
   Future<List<SolicitacaoEntity>> call() async =>
       _solicitacoes.listarPorClienteId(exigirUsuario(_auth));
+}
+
+class ListarOrcamentosDaSolicitacao {
+  final AuthRepository _auth;
+  final SolicitacaoRepository _solicitacoes;
+  final OrcamentoRepository _orcamentos;
+
+  const ListarOrcamentosDaSolicitacao(
+    this._auth,
+    this._solicitacoes,
+    this._orcamentos,
+  );
+
+  Future<List<OrcamentoEntity>> call(String solicitacaoId) async {
+    final usuarioId = exigirUsuario(_auth);
+    final solicitacao = await _solicitacoes.buscarPorId(solicitacaoId);
+    if (solicitacao == null) {
+      throw const Falha(TipoFalha.naoEncontrado, 'Solicitação não encontrada.');
+    }
+    exigirProprietario(usuarioId, solicitacao.clienteId);
+    return _orcamentos.listarPorSolicitacao(solicitacaoId);
+  }
 }
 
 class ListarServicosComoCliente {

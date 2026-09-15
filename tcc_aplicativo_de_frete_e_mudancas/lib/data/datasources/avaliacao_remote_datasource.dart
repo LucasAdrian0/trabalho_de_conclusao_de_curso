@@ -3,42 +3,30 @@ import '../models/avaliacao_model.dart';
 
 abstract class AvaliacaoRemoteDataSource {
   Future<void> salvar(AvaliacaoModel avaliacao);
-  Future<List<AvaliacaoModel>> listarPorPrestadorId(String prestadorId);
-  Future<AvaliacaoModel?> buscarPorServicoId(String servicoId);
+  Future<List<AvaliacaoModel>> listarPrestador(String id);
+  Future<AvaliacaoModel?> buscarServico(String id);
 }
 
 class AvaliacaoRemoteDataSourceImpl implements AvaliacaoRemoteDataSource {
-  final SupabaseClient supabase;
-
-  AvaliacaoRemoteDataSourceImpl({required this.supabase});
-
+  final SupabaseClient client;
+  AvaliacaoRemoteDataSourceImpl(this.client);
   @override
-  Future<void> salvar(AvaliacaoModel avaliacao) async {
-    await supabase.from('avaliacoes').insert(avaliacao.toJson());
+  Future<void> salvar(AvaliacaoModel a) async {
+    await client.from('avaliacoes').insert(a.toJson());
   }
 
   @override
-  Future<List<AvaliacaoModel>> listarPorPrestadorId(String prestadorId) async {
-    final response = await supabase
-        .from('avaliacoes')
-        .select()
-        .eq('prestador_id', prestadorId);
-
-    final lista = response as List;
-    return lista
-        .map((e) => AvaliacaoModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
+  Future<List<AvaliacaoModel>> listarPrestador(String id) async =>
+      (await client.from('avaliacoes').select().eq('prestador_id', id))
+          .map(AvaliacaoModel.fromJson)
+          .toList();
   @override
-  Future<AvaliacaoModel?> buscarPorServicoId(String servicoId) async {
-    final response = await supabase
+  Future<AvaliacaoModel?> buscarServico(String id) async {
+    final j = await client
         .from('avaliacoes')
         .select()
-        .eq('servico_id', servicoId)
+        .eq('servico_id', id)
         .maybeSingle();
-
-    if (response == null) return null;
-    return AvaliacaoModel.fromJson(response);
+    return j == null ? null : AvaliacaoModel.fromJson(j);
   }
 }

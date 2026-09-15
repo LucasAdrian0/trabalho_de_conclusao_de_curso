@@ -2,12 +2,14 @@ import '../../domain/entities/cliente_entity.dart';
 import '../../domain/entities/prestador_entity.dart';
 import '../../domain/entities/usuario_entity.dart';
 import '../../domain/entities/veiculo.dart';
+import '../../domain/entities/ajudante_entity.dart';
 import '../../domain/errors/falha.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/cliente_repository.dart';
 import '../../domain/repositories/prestador_repository.dart';
 import '../../domain/repositories/usuario_repository.dart';
 import '../../domain/repositories/veiculo_repository.dart';
+import '../../domain/repositories/ajudante_repository.dart';
 import '../../domain/validation/credenciais.dart';
 import '../support/sessao.dart';
 
@@ -53,7 +55,19 @@ class AtualizarPrestador {
   Future<void> call(PrestadorEntity prestador) async {
     exigirProprietario(exigirUsuario(_auth), prestador.usuario.id);
     prestador.validarCadastro();
-    await _prestadores.atualizar(prestador);
+    await _prestadores.salvar(prestador);
+  }
+}
+
+class SalvarAjudante {
+  final AuthRepository _auth;
+  final AjudanteRepository _ajudantes;
+  const SalvarAjudante(this._auth, this._ajudantes);
+
+  Future<void> call(AjudanteEntity ajudante) async {
+    exigirProprietario(exigirUsuario(_auth), ajudante.prestadorId);
+    ajudante.validar();
+    await _ajudantes.salvar(ajudante);
   }
 }
 

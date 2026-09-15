@@ -8,6 +8,7 @@ import 'usecases/recusar_orcamento.dart';
 import 'usecases/avaliar_servico.dart';
 import 'usecases/perfil_use_cases.dart';
 import 'usecases/consulta_use_cases.dart';
+import 'usecases/gerar_cotacoes_automaticas.dart';
 
 /// Dependências oferecidas à apresentação; não expõe repositórios ou SDKs.
 class AppUseCases {
@@ -21,6 +22,7 @@ class AppUseCases {
   final AtualizarStatusServico atualizarStatusServico;
   final AtualizarStatusSolicitacao atualizarStatusSolicitacao;
   final CriarOrcamento criarOrcamento;
+  final GerarCotacoesAutomaticas gerarCotacoesAutomaticas;
   final RecusarOrcamento recusarOrcamento;
   final AvaliarServico avaliarServico;
   final AtualizarPerfil atualizarPerfil;
@@ -28,11 +30,13 @@ class AppUseCases {
   final CadastrarPrestador cadastrarPrestador;
   final AtualizarPrestador atualizarPrestador;
   final SalvarVeiculo salvarVeiculo;
+  final SalvarAjudante salvarAjudante;
   final ConsultarMeuPerfil consultarMeuPerfil;
   final ConsultarPagamento consultarPagamento;
   final ListarMinhasNotificacoes listarMinhasNotificacoes;
   final MarcarNotificacaoComoLida marcarNotificacaoComoLida;
   final ListarMinhasSolicitacoes listarMinhasSolicitacoes;
+  final ListarOrcamentosDaSolicitacao listarOrcamentosDaSolicitacao;
   final ListarServicosComoCliente listarServicosComoCliente;
   final ListarServicosComoPrestador listarServicosComoPrestador;
   const AppUseCases({
@@ -46,6 +50,7 @@ class AppUseCases {
     required this.atualizarStatusServico,
     required this.atualizarStatusSolicitacao,
     required this.criarOrcamento,
+    required this.gerarCotacoesAutomaticas,
     required this.recusarOrcamento,
     required this.avaliarServico,
     required this.atualizarPerfil,
@@ -53,11 +58,13 @@ class AppUseCases {
     required this.cadastrarPrestador,
     required this.atualizarPrestador,
     required this.salvarVeiculo,
+    required this.salvarAjudante,
     required this.consultarMeuPerfil,
     required this.consultarPagamento,
     required this.listarMinhasNotificacoes,
     required this.marcarNotificacaoComoLida,
     required this.listarMinhasSolicitacoes,
+    required this.listarOrcamentosDaSolicitacao,
     required this.listarServicosComoCliente,
     required this.listarServicosComoPrestador,
   });

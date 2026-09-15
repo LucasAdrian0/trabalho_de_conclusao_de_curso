@@ -1,6 +1,25 @@
-// Compatibilidade com os nomes antigos; implementação única.
-import 'notificacoes_remote_datasource.dart';
-export 'notificacoes_remote_datasource.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/notificacoes_model.dart';
 
-typedef NotificacaoRemoteDataSource = NotificacoesRemoteDataSource;
-typedef NotificacaoRemoteDataSourceImpl = NotificacoesRemoteDataSourceImpl;
+abstract class NotificacaoRemoteDataSource {
+  Future<List<NotificacoesModel>> listar(String usuarioId);
+  Future<void> marcarLida(String id);
+}
+
+class NotificacaoRemoteDataSourceImpl implements NotificacaoRemoteDataSource {
+  final SupabaseClient client;
+  NotificacaoRemoteDataSourceImpl(this.client);
+  @override
+  Future<List<NotificacoesModel>> listar(String id) async =>
+      (await client
+              .from('notificacoes')
+              .select()
+              .eq('usuario_id', id)
+              .order('criado_em', ascending: false))
+          .map(NotificacoesModel.fromJson)
+          .toList();
+  @override
+  Future<void> marcarLida(String id) async {
+    await client.from('notificacoes').update({'lida': true}).eq('id', id);
+  }
+}

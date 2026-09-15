@@ -8,33 +8,26 @@ class AvaliacaoModel extends AvaliacaoEntity {
     required super.prestadorId,
     required super.nota,
     super.comentario,
-    required super.createdAt,
+    required super.criadoEm,
   });
-
-  factory AvaliacaoModel.fromJson(Map<String, dynamic> json) {
-    return AvaliacaoModel(
-      id: json['id'] as String,
-      servicoId: json['servico_id'] as String,
-      clienteId: json['cliente_id'] as String,
-      prestadorId: json['prestador_id'] as String,
-      nota: (json['nota'] as num).toDouble(),
-      comentario: json['comentario'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'servico_id': servicoId,
-      'cliente_id': clienteId,
-      'prestador_id': prestadorId,
-      'nota': nota.toInt(),
-      if (comentario != null) 'comentario': comentario,
-      'created_at': createdAt.toIso8601String(),
-    };
-  }
-
+  factory AvaliacaoModel.fromJson(Map<String, dynamic> j) => AvaliacaoModel(
+    id: j['id'],
+    servicoId: j['servico_id'],
+    clienteId: j['cliente_id'],
+    prestadorId: j['prestador_id'],
+    nota: j['nota'],
+    comentario: j['comentario'],
+    criadoEm: DateTime.parse(j['criado_em']),
+  );
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'servico_id': servicoId,
+    'cliente_id': clienteId,
+    'prestador_id': prestadorId,
+    'nota': nota,
+    'comentario': comentario,
+    'criado_em': criadoEm.toIso8601String(),
+  };
   AvaliacaoEntity toEntity() => AvaliacaoEntity(
     id: id,
     servicoId: servicoId,
@@ -42,18 +35,15 @@ class AvaliacaoModel extends AvaliacaoEntity {
     prestadorId: prestadorId,
     nota: nota,
     comentario: comentario,
-    createdAt: createdAt,
+    criadoEm: criadoEm,
   );
-
-  factory AvaliacaoModel.fromEntity(AvaliacaoEntity entity) {
-    return AvaliacaoModel(
-      id: entity.id,
-      servicoId: entity.servicoId,
-      clienteId: entity.clienteId,
-      prestadorId: entity.prestadorId,
-      nota: entity.nota,
-      comentario: entity.comentario,
-      createdAt: entity.createdAt,
-    );
-  }
+  factory AvaliacaoModel.fromEntity(AvaliacaoEntity e) => AvaliacaoModel(
+    id: e.id,
+    servicoId: e.servicoId,
+    clienteId: e.clienteId,
+    prestadorId: e.prestadorId,
+    nota: e.nota,
+    comentario: e.comentario,
+    criadoEm: e.criadoEm,
+  );
 }

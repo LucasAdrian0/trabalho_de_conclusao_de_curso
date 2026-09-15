@@ -1,6 +1,1 @@
-enum TipoServicoSolicitado {
-  mudancaResidencial,
-  mudancaComercial,
-  fretePequeno,
-  outros,
-}
+enum TipoServicoSolicitado { mudanca, frete }

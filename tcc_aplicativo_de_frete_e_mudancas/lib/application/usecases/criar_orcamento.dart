@@ -4,6 +4,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/orcamento_repository.dart';
 import '../../domain/repositories/solicitacao_repository.dart';
 import '../../domain/repositories/veiculo_repository.dart';
+import '../../domain/repositories/ajudante_repository.dart';
 import '../support/sessao.dart';
 
 class CriarOrcamento {
@@ -11,11 +12,13 @@ class CriarOrcamento {
   final OrcamentoRepository _orcamentos;
   final SolicitacaoRepository _solicitacoes;
   final VeiculoRepository _veiculos;
+  final AjudanteRepository _ajudantes;
   const CriarOrcamento(
     this._auth,
     this._orcamentos,
     this._solicitacoes,
     this._veiculos,
+    this._ajudantes,
   );
   Future<OrcamentoEntity> call(OrcamentoEntity orcamento) async {
     final id = exigirUsuario(_auth);
@@ -39,6 +42,19 @@ class CriarOrcamento {
         'Escolha um veículo ativo da sua conta.',
       );
     }
-    return _orcamentos.criarOrcamento(orcamento);
+    if (orcamento.quantidadeAjudantesCotada > 0) {
+      final ofertas = await _ajudantes.listarPorPrestadorId(id);
+      final oferta = ofertas
+          .where((item) => item.id == orcamento.ajudantesId)
+          .firstOrNull;
+      if (oferta == null ||
+          !oferta.podeAtender(orcamento.quantidadeAjudantesCotada)) {
+        throw const Falha(
+          TipoFalha.validacao,
+          'A oferta de ajudantes não atende à quantidade informada.',
+        );
+      }
+    }
+    return _orcamentos.criar(orcamento);
   }
 }

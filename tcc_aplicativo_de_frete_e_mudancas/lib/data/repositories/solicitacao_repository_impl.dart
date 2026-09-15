@@ -1,58 +1,38 @@
-import '../errors/executar_repositorio.dart';
-import '../mappers/database_enums.dart';
 import '../../domain/entities/solicitacao_entity.dart';
 import '../../domain/enums/status_solicitacao.dart';
-import '../../domain/enums/tipo_servico_solicitado.dart';
 import '../../domain/repositories/solicitacao_repository.dart';
 import '../datasources/solicitacao_remote_datasource.dart';
+import '../errors/executar_repositorio.dart';
+import '../mappers/database_enums.dart';
 import '../models/solicitacao_model.dart';
 
 class SolicitacaoRepositoryImpl implements SolicitacaoRepository {
-  final SolicitacaoRemoteDataSource remoteDataSource;
-
-  SolicitacaoRepositoryImpl({required this.remoteDataSource});
-
-  @override
-  Future<SolicitacaoEntity?> buscarPorId(String id) =>
-      executarRepositorio(() async {
-        final model = await remoteDataSource.buscarPorId(id);
-        return model?.toEntity();
-      });
+  final SolicitacaoRemoteDataSource dataSource;
+  SolicitacaoRepositoryImpl(this.dataSource);
 
   @override
-  Future<List<SolicitacaoEntity>> listarPorClienteId(String clienteId) =>
-      executarRepositorio(() async {
-        final models = await remoteDataSource.listarPorClienteId(clienteId);
-        return models.map((model) => model.toEntity()).toList();
-      });
-
+  Future<SolicitacaoEntity?> buscarPorId(String id) => executarRepositorio(
+    () async => (await dataSource.buscar(id))?.toEntity(),
+  );
   @override
-  Future<List<SolicitacaoEntity>> listarAbertasPorRegiao(
-    String cidade,
-    String estado, {
-    TipoServicoSolicitado? tipoServico,
-  }) => executarRepositorio(() async {
-    final models = await remoteDataSource.listarAbertasPorRegiao(
-      cidade,
-      estado,
-      tipoServico: tipoServico,
-    );
-    return models.map((model) => model.toEntity()).toList();
-  });
-
+  Future<List<SolicitacaoEntity>> listarPorClienteId(String id) =>
+      executarRepositorio(
+        () async => (await dataSource.listarCliente(
+          id,
+        )).map((m) => m.toEntity()).toList(),
+      );
   @override
-  Future<void> salvar(SolicitacaoEntity solicitacao) =>
-      executarRepositorio(() async {
-        final model = SolicitacaoModel.fromEntity(solicitacao);
-        await remoteDataSource.salvar(model);
-      });
-
+  Future<List<SolicitacaoEntity>> listarAbertas() => executarRepositorio(
+    () async =>
+        (await dataSource.listarAbertas()).map((m) => m.toEntity()).toList(),
+  );
   @override
-  Future<void> atualizarStatus(
-    String solicitacaoId,
-    StatusSolicitacao status,
-  ) => executarRepositorio(() async {
-    // Converte o Enum para String (status.databaseValue) ao repassar para a DataSource/Supabase
-    await remoteDataSource.atualizarStatus(solicitacaoId, status.databaseValue);
-  });
+  Future<void> salvar(SolicitacaoEntity solicitacao) => executarRepositorio(
+    () => dataSource.criar(SolicitacaoModel.fromEntity(solicitacao)),
+  );
+  @override
+  Future<void> atualizarStatus(String id, StatusSolicitacao status) =>
+      executarRepositorio(
+        () => dataSource.atualizarStatus(id, status.databaseValue),
+      );
 }

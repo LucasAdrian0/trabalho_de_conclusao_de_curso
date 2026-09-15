@@ -1,77 +1,66 @@
+import '../enums/status_solicitacao.dart';
 import '../errors/falha.dart';
-import 'package:tcc_frete_urbano/domain/entities/historico_status_service.dart';
-import 'package:tcc_frete_urbano/domain/enums/status_servico.dart';
+import 'historico_status_entity.dart';
 
 class ServicoEntity {
   final String id;
   final String solicitacaoId;
   final String orcamentoId;
-  final String clienteId;
   final String prestadorId;
   final String veiculoId;
-  final double valorTotal;
-  final StatusServico status;
-  final DateTime dataAgendada;
-  final String horarioAgendado;
-  final DateTime? iniciadoEm;
-  final DateTime? concluidoEm;
-  final List<HistoricoStatusServico> historico;
-
+  final DateTime? dataInicio;
+  final DateTime? dataConclusao;
+  final StatusSolicitacao status;
+  final DateTime criadoEm;
+  final List<HistoricoStatusEntity> historico;
   const ServicoEntity({
     required this.id,
     required this.solicitacaoId,
     required this.orcamentoId,
-    required this.clienteId,
     required this.prestadorId,
     required this.veiculoId,
-    required this.valorTotal,
+    this.dataInicio,
+    this.dataConclusao,
     required this.status,
-    required this.dataAgendada,
-    required this.horarioAgendado,
-    this.iniciadoEm,
-    this.concluidoEm,
+    required this.criadoEm,
     this.historico = const [],
   });
 
-  // Métodos de regra de negócio comparando diretamente com o Enum
-  bool podeIniciar() => status == StatusServico.agendado;
-
-  bool podeConcluir() => status == StatusServico.emAndamento;
-
-  bool podeAvaliar() => status == StatusServico.concluido;
-
-  bool podeCancelar() =>
-      status == StatusServico.agendado ||
-      status == StatusServico.prestadorACaminho;
-
-  void validarTransicao(StatusServico novoStatus, String usuarioId) {
+  bool podeAvaliar() => status == StatusSolicitacao.concluido;
+  void validarTransicao(
+    StatusSolicitacao nova,
+    String usuarioId,
+    String clienteId,
+  ) {
     if (usuarioId != clienteId && usuarioId != prestadorId) {
       throw const Falha(
         TipoFalha.acessoNegado,
-        'Este serviço não pertence à sua conta.',
+        'Serviço não pertence à sua conta.',
       );
     }
-    if (novoStatus == status) return;
     final peloPrestador =
         usuarioId == prestadorId &&
-        ((status == StatusServico.agendado &&
+        ((status == StatusSolicitacao.agendado &&
                 {
-                  StatusServico.prestadorACaminho,
-                  StatusServico.emAndamento,
-                  StatusServico.canceladoPeloPrestador,
-                }.contains(novoStatus)) ||
-            (status == StatusServico.prestadorACaminho &&
+                  StatusSolicitacao.aCaminho,
+                  StatusSolicitacao.emAndamento,
+                  StatusSolicitacao.canceladoPrestador,
+                }.contains(nova)) ||
+            (status == StatusSolicitacao.aCaminho &&
                 {
-                  StatusServico.emAndamento,
-                  StatusServico.canceladoPeloPrestador,
-                }.contains(novoStatus)) ||
-            (status == StatusServico.emAndamento &&
-                novoStatus == StatusServico.concluido));
+                  StatusSolicitacao.emAndamento,
+                  StatusSolicitacao.canceladoPrestador,
+                }.contains(nova)) ||
+            (status == StatusSolicitacao.emAndamento &&
+                nova == StatusSolicitacao.concluido));
     final peloCliente =
         usuarioId == clienteId &&
-        podeCancelar() &&
-        novoStatus == StatusServico.canceladoPeloCliente;
-    if (!peloPrestador && !peloCliente) {
+        {
+          StatusSolicitacao.agendado,
+          StatusSolicitacao.aCaminho,
+        }.contains(status) &&
+        nova == StatusSolicitacao.canceladoCliente;
+    if (nova != status && !peloPrestador && !peloCliente) {
       throw const Falha(
         TipoFalha.conflito,
         'Transição de serviço não permitida.',

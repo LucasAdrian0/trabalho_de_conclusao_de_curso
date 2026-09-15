@@ -1,5 +1,5 @@
-import 'package:tcc_frete_urbano/domain/entities/usuario_entity.dart';
-import 'package:tcc_frete_urbano/domain/enums/tipo_usuario.dart';
+import '../../domain/entities/usuario_entity.dart';
+import '../mappers/database_enums.dart';
 
 class UsuarioModel extends UsuarioEntity {
   const UsuarioModel({
@@ -8,74 +8,53 @@ class UsuarioModel extends UsuarioEntity {
     required super.nome,
     required super.email,
     super.telefone,
-    super.fotoUrl,
-    super.emailVerificado,
+    super.fotoPerfilUrl,
     super.ativo,
-    super.ultimoLoginEm,
-    required super.createdAt,
-    required super.updatedAt,
+    required super.criadoEm,
+    required super.atualizadoEm,
   });
-
-  factory UsuarioModel.fromJson(Map<String, dynamic> json) {
-    return UsuarioModel(
-      id: json['id'] as String,
-      tipo: TipoUsuario.values.firstWhere(
-        (e) => e.toString() == 'TipoUsuario.${json['tipo']}',
-      ),
-      nome: json['nome'] as String,
-      email: json['email'] as String,
-      telefone: json['telefone'] as String?,
-      fotoUrl: json['foto_url'] as String?,
-      emailVerificado: json['email_verificado'] as bool? ?? false,
-      ativo: json['ativo'] as bool? ?? true,
-      ultimoLoginEm: json['ultimo_login_em'] != null
-          ? DateTime.parse(json['ultimo_login_em'])
-          : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'tipo': tipo.toString().split('.').last,
-      'nome': nome,
-      'email': email,
-      'telefone': telefone,
-      'foto_url': fotoUrl,
-      'email_verificado': emailVerificado,
-      'ativo': ativo,
-      'ultimo_login_em': ultimoLoginEm?.toIso8601String(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-    };
-  }
-
-  factory UsuarioModel.fromEntity(UsuarioEntity entity) => UsuarioModel(
-    id: entity.id,
-    tipo: entity.tipo,
-    nome: entity.nome,
-    email: entity.email,
-    telefone: entity.telefone,
-    fotoUrl: entity.fotoUrl,
-    emailVerificado: entity.emailVerificado,
-    ativo: entity.ativo,
-    ultimoLoginEm: entity.ultimoLoginEm,
-    createdAt: entity.createdAt,
-    updatedAt: entity.updatedAt,
+  factory UsuarioModel.fromJson(Map<String, dynamic> j) => UsuarioModel(
+    id: j['id'],
+    tipo: TipoUsuarioMapper.fromDatabase(j['tipo']),
+    nome: j['nome'],
+    email: j['email'],
+    telefone: j['telefone'],
+    fotoPerfilUrl: j['foto_perfil_url'],
+    ativo: j['ativo'] ?? true,
+    criadoEm: DateTime.parse(j['criado_em']),
+    atualizadoEm: DateTime.parse(j['atualizado_em']),
   );
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'tipo': tipo.databaseValue,
+    'nome': nome,
+    'email': email,
+    'telefone': telefone,
+    'foto_perfil_url': fotoPerfilUrl,
+    'ativo': ativo,
+    'criado_em': criadoEm.toIso8601String(),
+    'atualizado_em': atualizadoEm.toIso8601String(),
+  };
   UsuarioEntity toEntity() => UsuarioEntity(
     id: id,
     tipo: tipo,
     nome: nome,
     email: email,
     telefone: telefone,
-    fotoUrl: fotoUrl,
-    emailVerificado: emailVerificado,
+    fotoPerfilUrl: fotoPerfilUrl,
     ativo: ativo,
-    ultimoLoginEm: ultimoLoginEm,
-    createdAt: createdAt,
-    updatedAt: updatedAt,
+    criadoEm: criadoEm,
+    atualizadoEm: atualizadoEm,
+  );
+  factory UsuarioModel.fromEntity(UsuarioEntity e) => UsuarioModel(
+    id: e.id,
+    tipo: e.tipo,
+    nome: e.nome,
+    email: e.email,
+    telefone: e.telefone,
+    fotoPerfilUrl: e.fotoPerfilUrl,
+    ativo: e.ativo,
+    criadoEm: e.criadoEm,
+    atualizadoEm: e.atualizadoEm,
   );
 }

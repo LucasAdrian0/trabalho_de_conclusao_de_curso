@@ -1,1 +1,0 @@
-//Cadastrar aqui depois os testes de validação de campos obrigatórios, limites, etc. para cada entidade do domínio.

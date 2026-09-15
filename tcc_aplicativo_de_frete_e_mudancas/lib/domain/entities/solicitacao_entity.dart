@@ -1,8 +1,8 @@
+import '../enums/status_solicitacao.dart';
+import '../enums/tipo_servico_solicitado.dart';
 import '../errors/falha.dart';
-import 'package:tcc_frete_urbano/domain/entities/endereco_entity.dart';
-import 'package:tcc_frete_urbano/domain/entities/item_solicitado.dart';
-import 'package:tcc_frete_urbano/domain/enums/status_solicitacao.dart';
-import 'package:tcc_frete_urbano/domain/enums/tipo_servico_solicitado.dart';
+import 'endereco_entity.dart';
+import 'item_mudanca_entity.dart';
 
 class SolicitacaoEntity {
   final String id;
@@ -10,16 +10,16 @@ class SolicitacaoEntity {
   final EnderecoEntity enderecoOrigem;
   final EnderecoEntity enderecoDestino;
   final DateTime dataDesejada;
-  final String horarioDesejado;
-  final TipoServicoSolicitado tiposervico;
-  final double volumeEstimadoM3;
+  final TipoServicoSolicitado tipoServico;
+  final double? volumeEstimadoM3;
   final bool necessitaAjudantes;
   final int quantidadeAjudantes;
-  final double distanciaKm;
-  final int duracaoEstimadaMin;
+  final double? distanciaKm;
+  final Map<String, dynamic>? rotaGeoJson;
   final StatusSolicitacao status;
-  final String? observacoes;
-  final List<ItemSolicitacao> itens;
+  final DateTime criadoEm;
+  final DateTime atualizadoEm;
+  final List<ItemMudancaEntity> itens;
 
   const SolicitacaoEntity({
     required this.id,
@@ -27,88 +27,53 @@ class SolicitacaoEntity {
     required this.enderecoOrigem,
     required this.enderecoDestino,
     required this.dataDesejada,
-    required this.horarioDesejado,
-    required this.tiposervico,
-    required this.volumeEstimadoM3,
+    required this.tipoServico,
+    this.volumeEstimadoM3,
     this.necessitaAjudantes = false,
     this.quantidadeAjudantes = 0,
-    required this.distanciaKm,
-    required this.duracaoEstimadaMin,
+    this.distanciaKm,
+    this.rotaGeoJson,
     required this.status,
-    this.observacoes,
+    required this.criadoEm,
+    required this.atualizadoEm,
     this.itens = const [],
   });
-
-  // Regras de negócio tipadas com Enum
-  bool podeSerCancelada() =>
-      status == StatusSolicitacao.criado ||
-      status == StatusSolicitacao.aguardandoPrestador;
-
   bool podeReceberOrcamento() =>
       status == StatusSolicitacao.aguardandoPrestador;
-
-  SolicitacaoEntity expirar() {
-    return _copyWith(status: StatusSolicitacao.expirada);
-  }
-
-  SolicitacaoEntity adicionarItem(ItemSolicitacao item) {
-    final novosItens = List<ItemSolicitacao>.from(itens)..add(item);
-    return _copyWith(itens: novosItens);
-  }
-
-  SolicitacaoEntity removerItem(String itemId) {
-    final novosItens = itens.where((item) => item.id != itemId).toList();
-    return _copyWith(itens: novosItens);
-  }
-
-  SolicitacaoEntity _copyWith({
-    StatusSolicitacao? status,
-    List<ItemSolicitacao>? itens,
-  }) {
-    return SolicitacaoEntity(
-      id: id,
-      clienteId: clienteId,
-      enderecoOrigem: enderecoOrigem,
-      enderecoDestino: enderecoDestino,
-      dataDesejada: dataDesejada,
-      horarioDesejado: horarioDesejado,
-      tiposervico: tiposervico,
-      volumeEstimadoM3: volumeEstimadoM3,
-      necessitaAjudantes: necessitaAjudantes,
-      quantidadeAjudantes: quantidadeAjudantes,
-      distanciaKm: distanciaKm,
-      duracaoEstimadaMin: duracaoEstimadaMin,
-      status: status ?? this.status,
-      observacoes: observacoes,
-      itens: itens ?? this.itens,
-    );
-  }
-
+  bool podeSerCancelada() => {
+    StatusSolicitacao.criada,
+    StatusSolicitacao.aguardandoPrestador,
+    StatusSolicitacao.pagamentoPendente,
+    StatusSolicitacao.pagamentoRecusado,
+  }.contains(status);
   void validar() {
+    if (quantidadeAjudantes < 0 ||
+        (volumeEstimadoM3 != null &&
+            (!volumeEstimadoM3!.isFinite || volumeEstimadoM3! < 0)) ||
+        (distanciaKm != null && (!distanciaKm!.isFinite || distanciaKm! < 0))) {
+      throw const Falha(
+        TipoFalha.validacao,
+        'Valores da solicitação inválidos.',
+      );
+    }
     for (final item in itens) {
       item.validar();
       if (item.solicitacaoId != id) {
-        throw const Falha(TipoFalha.validacao, "Item de outra solicitação.");
+        throw const Falha(
+          TipoFalha.validacao,
+          'Item pertence a outra solicitação.',
+        );
       }
-    }
-
-    if (quantidadeAjudantes < 0 ||
-        duracaoEstimadaMin < 0 ||
-        !volumeEstimadoM3.isFinite ||
-        volumeEstimadoM3 < 0 ||
-        !distanciaKm.isFinite ||
-        distanciaKm < 0) {
-      throw Falha(TipoFalha.validacao, 'Valores da solicitação inválidos.');
     }
   }
 
-  void validarTransicao(StatusSolicitacao novoStatus) {
-    if (status == novoStatus) return;
-    if (status == StatusSolicitacao.criado &&
-        novoStatus == StatusSolicitacao.aguardandoPrestador) {
+  void validarTransicao(StatusSolicitacao nova) {
+    if (nova == status ||
+        (podeSerCancelada() && nova == StatusSolicitacao.canceladoCliente) ||
+        (status == StatusSolicitacao.criada &&
+            nova == StatusSolicitacao.aguardandoPrestador)) {
       return;
     }
-    if (podeSerCancelada() && novoStatus == StatusSolicitacao.cancelada) return;
     throw const Falha(
       TipoFalha.conflito,
       'Transição de solicitação não permitida.',

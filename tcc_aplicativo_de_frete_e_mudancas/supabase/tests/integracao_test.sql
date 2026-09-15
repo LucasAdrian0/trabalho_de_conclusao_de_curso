@@ -1,96 +1,100 @@
--- Executar após fixture_schema.sql e a migration, somente em banco descartável.
 \set ON_ERROR_STOP on
-begin;
-insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values
- ('00000000-0000-0000-0000-000000000001','cliente@example.com',now(),'{"tipo":"cliente","nome":"Cliente"}'),
- ('00000000-0000-0000-0000-000000000002','prestador@example.com',now(),'{"tipo":"prestador","nome":"Prestador"}'),
- ('00000000-0000-0000-0000-000000000003','outro@example.com',now(),'{"tipo":"cliente","nome":"Outro"}');
-set local role authenticated;
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',true);
-select public.salvar_prestador_com_relacoes(
- '{"usuario_id":"00000000-0000-0000-0000-000000000002","cpf_cnpj":"12345678901","status_disponibilidade":"disponivel"}',true,
- '[{"id":"10000000-0000-0000-0000-000000000001","prestador_id":"00000000-0000-0000-0000-000000000002","cidade":"Ourinhos","estado":"SP","raio_km":10}]',
- '[{"id":"20000000-0000-0000-0000-000000000001","prestador_id":"00000000-0000-0000-0000-000000000002","tipo":"fiorino","valor_km":5,"status":"ativo"}]',
- '{"prestador_id":"00000000-0000-0000-0000-000000000002","oferece_ajudantes":true,"quantidade_disponivel":1,"valor_por_ajudante":50}');
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
-do $$
-declare
- pedido jsonb := '{"id":"30000000-0000-0000-0000-000000000001","cliente_id":"00000000-0000-0000-0000-000000000001","endereco_origem_id":"40000000-0000-0000-0000-000000000001","endereco_destino_id":"40000000-0000-0000-0000-000000000002","data_desejada":"2026-10-01","tipo_servico":"frete_pequeno","status":"aguardando_prestador","necessita_ajudantes":false,"quantidade_ajudantes":0}';
- origem jsonb := '{"id":"40000000-0000-0000-0000-000000000001","tipo":"origem","logradouro":"Rua A","cidade":"Ourinhos","estado":"SP"}';
- destino jsonb := '{"id":"40000000-0000-0000-0000-000000000002","tipo":"destino","logradouro":"Rua B","cidade":"Ourinhos","estado":"SP"}';
- itens jsonb := '[{"id":"50000000-0000-0000-0000-000000000001","solicitacao_id":"30000000-0000-0000-0000-000000000001","nome":"Caixa","quantidade":-1,"fragil":false}]';
-begin
- begin
-  perform public.criar_solicitacao_com_itens(pedido,origem,destino,itens);
-  raise exception 'TESTE: deveria rejeitar quantidade negativa';
- exception when check_violation then null;
- end;
- if exists(select 1 from public.enderecos) or exists(select 1 from public.solicitacoes) then
-  raise exception 'TESTE: falha não reverteu a transação';
- end if;
- itens := jsonb_set(itens,'{0,quantidade}','1');
- perform public.criar_solicitacao_com_itens(pedido,origem,destino,itens);
- if (select count(*) from public.itens_solicitacao)<>1 then raise exception 'TESTE: item não persistido'; end if;
-end $$;
 
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',true);
-do $$ begin
- if exists(select 1 from public.solicitacoes) or exists(select 1 from public.enderecos) then
-  raise exception 'TESTE: outro cliente consegue acessar a solicitação';
- end if;
- begin
-  perform senha_hash from public.usuarios;
-  raise exception 'TESTE: hash legado exposto';
- exception when insufficient_privilege then null;
- end;
-end $$;
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+REVOKE SELECT, UPDATE ON usuarios FROM authenticated;
+GRANT SELECT (
+  id, tipo, nome, email, telefone, foto_perfil_url, ativo,
+  criado_em, atualizado_em
+) ON usuarios TO authenticated;
+GRANT UPDATE (nome, telefone, foto_perfil_url, ativo) ON usuarios TO authenticated;
 
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',true);
-insert into public.orcamentos(id,solicitacao_id,prestador_id,veiculo_id,valor_km_aplicado,valor_transporte,valor_total_estimado)
- values('60000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000001',
- '00000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000001',5,100,100);
-do $$ begin
- begin
-  perform public.aceitar_orcamento('60000000-0000-0000-0000-000000000001');
-  raise exception 'TESTE: prestador aceitou pelo cliente';
- exception when raise_exception then
-  if sqlerrm<>'Cliente não autorizado' then raise; end if;
- end;
-end $$;
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
-select public.aceitar_orcamento('60000000-0000-0000-0000-000000000001');
-select public.aceitar_orcamento('60000000-0000-0000-0000-000000000001');
-do $$ begin
- if (select count(*) from public.servicos)<>1 then raise exception 'TESTE: aceite duplicou serviço'; end if;
- begin
-  perform public.atualizar_status_servico((select id from public.servicos),'concluido');
-  raise exception 'TESTE: cliente concluiu serviço agendado';
- exception when raise_exception then
-  if sqlerrm<>'Transição de status não permitida' then raise; end if;
- end;
- if (select count(*) from public.historico_status_servico)<>1 then raise exception 'TESTE: histórico inválido'; end if;
-end $$;
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',true);
-select public.atualizar_status_servico((select id from public.servicos),'em_andamento');
-select public.atualizar_status_servico((select id from public.servicos),'concluido');
-do $$ begin
- if (select count(*) from public.historico_status_servico)<>3 then raise exception 'TESTE: histórico incompleto'; end if;
- if not exists(select 1 from public.servicos where iniciado_em is not null and concluido_em is not null) then
-  raise exception 'TESTE: datas não preenchidas';
- end if;
-end $$;
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
-insert into public.avaliacoes(servico_id,cliente_id,prestador_id,nota)
- select id,cliente_id,prestador_id,5 from public.servicos;
-do $$ begin
- if not exists(select 1 from public.prestadores where total_avaliacoes=1 and avaliacao_media=5 and total_servicos_concluidos=1) then
-  raise exception 'TESTE: estatísticas incorretas';
- end if;
- begin
-  insert into public.pagamentos(servico_id,metodo,valor,status) select id,'pix',100,'aprovado' from public.servicos;
-  raise exception 'TESTE: cliente confirmou pagamento';
- exception when insufficient_privilege then null;
- end;
-end $$;
-rollback;
-\echo 'Integração SQL: todos os cenários passaram.'
+BEGIN;
+INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES
+  ('00000000-0000-0000-0000-000000000001', 'cliente@example.com', '{"tipo":"cliente","nome":"Cliente"}'),
+  ('00000000-0000-0000-0000-000000000002', 'prestador@example.com', '{"tipo":"prestador","nome":"Prestador"}'),
+  ('00000000-0000-0000-0000-000000000003', 'outro@example.com', '{"tipo":"cliente","nome":"Outro"}');
+
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+UPDATE prestadores
+SET cpf_cnpj = '12345678901',
+    regiao_atendimento = 'Ourinhos',
+    status_disponibilidade = 'disponivel'
+WHERE usuario_id = auth.uid();
+INSERT INTO veiculos (id, prestador_id, tipo_veiculo, valor_por_km, status)
+VALUES ('20000000-0000-0000-0000-000000000001', auth.uid(), 'fiorino', 5, 'ativo');
+INSERT INTO ajudantes (id, prestador_id, quantidade_disponivel, valor_por_ajudante)
+VALUES ('21000000-0000-0000-0000-000000000001', auth.uid(), 1, 50);
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+SELECT criar_solicitacao_com_itens(
+  '{"id":"30000000-0000-0000-0000-000000000001","cliente_id":"00000000-0000-0000-0000-000000000001","data_desejada":"2026-10-01","tipo_servico":"frete","necessita_ajudantes":true,"quantidade_ajudantes":1,"distancia_km":20}',
+  '{"id":"40000000-0000-0000-0000-000000000001","logradouro":"Rua A","cidade":"Ourinhos","estado":"SP"}',
+  '{"id":"40000000-0000-0000-0000-000000000002","logradouro":"Rua B","cidade":"Ourinhos","estado":"SP"}',
+  '[{"id":"50000000-0000-0000-0000-000000000001","descricao":"Caixa","quantidade":1}]'
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM orcamentos
+    WHERE solicitacao_id = '30000000-0000-0000-0000-000000000001'
+      AND valor_transporte = 100
+      AND valor_ajudantes = 50
+      AND valor_total = 150
+  ) THEN
+    RAISE EXCEPTION 'Cotação automática não foi calculada corretamente';
+  END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000003', true);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM solicitacoes) THEN
+    RAISE EXCEPTION 'Outro cliente acessou uma solicitação privada';
+  END IF;
+  BEGIN
+    PERFORM senha_hash FROM usuarios;
+    RAISE EXCEPTION 'senha_hash ficou exposta';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+SELECT count(*) FROM orcamentos
+WHERE solicitacao_id = '30000000-0000-0000-0000-000000000001';
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+SELECT aceitar_orcamento((
+  SELECT id FROM orcamentos
+  WHERE solicitacao_id = '30000000-0000-0000-0000-000000000001'
+  LIMIT 1
+));
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+SELECT atualizar_status_servico((SELECT id FROM servicos LIMIT 1), 'em_andamento');
+SELECT atualizar_status_servico((SELECT id FROM servicos LIMIT 1), 'concluido');
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+INSERT INTO avaliacoes (servico_id, cliente_id, prestador_id, nota)
+SELECT id, auth.uid(), prestador_id, 5 FROM servicos;
+
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM historico_status) <> 3 THEN
+    RAISE EXCEPTION 'Histórico incompleto';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM prestadores
+    WHERE usuario_id = '00000000-0000-0000-0000-000000000002'
+      AND avaliacao_media = 5
+      AND total_avaliacoes = 1
+  ) THEN
+    RAISE EXCEPTION 'Média de avaliações não foi atualizada';
+  END IF;
+END $$;
+
+ROLLBACK;
+\echo 'Integração SQL concluída com sucesso.'

@@ -5,9 +5,9 @@ class AvaliacaoEntity {
   final String servicoId;
   final String clienteId;
   final String prestadorId;
-  final double nota; // Ex: 1.0 a 5.0
+  final int nota;
   final String? comentario;
-  final DateTime createdAt;
+  final DateTime criadoEm;
 
   const AvaliacaoEntity({
     required this.id,
@@ -16,21 +16,11 @@ class AvaliacaoEntity {
     required this.prestadorId,
     required this.nota,
     this.comentario,
-    required this.createdAt,
+    required this.criadoEm,
   });
-
-  bool eNotaMaxima() => nota >= 5.0;
-
-  bool eNotaBaixa() => nota <= 1.0;
   void validar() {
-    if (!nota.isFinite ||
-        nota < 1 ||
-        nota > 5 ||
-        nota != nota.roundToDouble()) {
-      throw Falha(
-        TipoFalha.validacao,
-        'A nota deve ser um inteiro entre 1 e 5.',
-      );
+    if (nota < 1 || nota > 5) {
+      throw const Falha(TipoFalha.validacao, 'A nota deve estar entre 1 e 5.');
     }
   }
 }

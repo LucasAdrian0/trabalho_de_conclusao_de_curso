@@ -1,61 +1,40 @@
-import '../mappers/database_enums.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../domain/enums/status_veiculo.dart';
 import '../models/veiculo_model.dart';
 
 abstract class VeiculoRemoteDataSource {
-  Future<VeiculoModel?> buscarPorId(String id);
-  Future<List<VeiculoModel>> listarPorPrestadorId(String prestadorId);
+  Future<VeiculoModel?> buscar(String id);
+  Future<List<VeiculoModel>> listar(String prestadorId);
   Future<void> salvar(VeiculoModel veiculo);
-  Future<void> atualizarStatus(String veiculoId, StatusVeiculo status);
-  Future<void> deletar(String veiculoId);
+  Future<void> atualizarStatus(String id, String status);
+  Future<void> excluir(String id);
 }
 
 class VeiculoRemoteDataSourceImpl implements VeiculoRemoteDataSource {
-  final SupabaseClient supabase;
-
-  VeiculoRemoteDataSourceImpl({required this.supabase});
-
+  final SupabaseClient client;
+  VeiculoRemoteDataSourceImpl(this.client);
   @override
-  Future<VeiculoModel?> buscarPorId(String id) async {
-    final response = await supabase
-        .from('veiculos')
-        .select()
-        .eq('id', id)
-        .maybeSingle();
-
-    if (response == null) return null;
-    return VeiculoModel.fromJson(response);
+  Future<VeiculoModel?> buscar(String id) async {
+    final j = await client.from('veiculos').select().eq('id', id).maybeSingle();
+    return j == null ? null : VeiculoModel.fromJson(j);
   }
 
   @override
-  Future<List<VeiculoModel>> listarPorPrestadorId(String prestadorId) async {
-    final response = await supabase
-        .from('veiculos')
-        .select()
-        .eq('prestador_id', prestadorId);
-
-    final lista = response as List;
-    return lista
-        .map((e) => VeiculoModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<List<VeiculoModel>> listar(String id) async =>
+      (await client.from('veiculos').select().eq('prestador_id', id))
+          .map(VeiculoModel.fromJson)
+          .toList();
+  @override
+  Future<void> salvar(VeiculoModel v) async {
+    await client.from('veiculos').upsert(v.toJson());
   }
 
   @override
-  Future<void> salvar(VeiculoModel veiculo) async {
-    await supabase.from('veiculos').upsert(veiculo.toJson());
+  Future<void> atualizarStatus(String id, String status) async {
+    await client.from('veiculos').update({'status': status}).eq('id', id);
   }
 
   @override
-  Future<void> atualizarStatus(String veiculoId, StatusVeiculo status) async {
-    await supabase
-        .from('veiculos')
-        .update({'status': status.databaseValue})
-        .eq('id', veiculoId);
-  }
-
-  @override
-  Future<void> deletar(String veiculoId) async {
-    await supabase.from('veiculos').delete().eq('id', veiculoId);
+  Future<void> excluir(String id) async {
+    await client.from('veiculos').delete().eq('id', id);
   }
 }

@@ -2,49 +2,39 @@ import '../enums/tipo_endereco.dart';
 
 class EnderecoEntity {
   final String id;
-  final String? usuarioId;
+  final String usuarioId;
   final TipoEndereco tipo;
-  final String cep;
   final String logradouro;
-  final String numero;
+  final String? numero;
   final String? complemento;
-  final String bairro;
+  final String? bairro;
   final String cidade;
   final String estado;
+  final String? cep;
   final double? latitude;
   final double? longitude;
-  final bool temElevador;
-  final int andar;
+  final DateTime criadoEm;
 
   const EnderecoEntity({
     required this.id,
     required this.usuarioId,
     required this.tipo,
-    required this.cep,
     required this.logradouro,
-    required this.numero,
+    this.numero,
     this.complemento,
-    required this.bairro,
+    this.bairro,
     required this.cidade,
     required this.estado,
+    this.cep,
     this.latitude,
     this.longitude,
-    this.temElevador = false,
-    this.andar = 0,
+    required this.criadoEm,
   });
-
-  bool temGeolocalizacaoValida() {
-    return latitude != null && longitude != null;
-  }
-
-  bool eEnderecoOrigem() => tipo == TipoEndereco.origem;
-
-  bool eEnderecoDestino() => tipo == TipoEndereco.destino;
-
-  String formatarEnderecoCompleto() {
-    final comp = (complemento != null && complemento!.isNotEmpty)
-        ? ', $complemento'
-        : '';
-    return '$logradouro, $numero$comp - $bairro, $cidade - $estado, $cep';
-  }
+  bool temGeolocalizacaoValida() =>
+      latitude != null &&
+      longitude != null &&
+      latitude! >= -90 &&
+      latitude! <= 90 &&
+      longitude! >= -180 &&
+      longitude! <= 180;
 }

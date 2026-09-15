@@ -1,9 +1,1 @@
-enum TipoNotificacao {
-  novaSolicitacao,
-  orcamentoRecebido,
-  orcamentoAceito,
-  statusServico,
-  pagamento,
-  avaliacao,
-  sistema,
-}
+enum TipoNotificacao { statusSolicitacao, pagamento, avaliacao, sistema }
